@@ -1,4 +1,4 @@
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY || "c62c89390d1836f2d4f7fc81c8ceb7ba";
+const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY || "";
 const BASE = "https://api.tmdb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/original";
 

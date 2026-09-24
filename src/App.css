@@ -258,7 +258,7 @@ html.light .fx-scanlines { opacity: 0.1; }
 }
 
 /* ─── Page Wrapper ─── */
-main { position: relative; min-height: 100vh; }
+main { position: relative; min-height: 100dvh; }
 .page-wrap { position: relative; z-index: 1; }
 
 /* ══════════════════════════════════════════════════════════════
