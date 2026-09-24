@@ -106,6 +106,14 @@ const ICONS = {
     [11, 8, 2, 2],
     [8, 15, 2, 6], [14, 15, 2, 6],
   ],
+  sun: [
+    [9, 9, 6, 6],
+    [11, 3, 2, 3], [11, 18, 2, 3], [3, 11, 3, 2], [18, 11, 3, 2],
+    [5, 5, 2, 2], [17, 5, 2, 2], [5, 17, 2, 2], [17, 17, 2, 2],
+  ],
+  moon: [
+    [10, 4, 6, 2], [8, 6, 2, 3], [7, 9, 2, 6], [8, 15, 2, 3], [10, 18, 6, 2],
+  ],
 };
 
 export default function PixelIcon({ name, size = 24, className = "", style, ...rest }) {
@@ -150,3 +158,5 @@ export const Info = (p) => <PixelIcon name="info" {...p} />;
 export const Calendar = (p) => <PixelIcon name="calendar" {...p} />;
 export const User = (p) => <PixelIcon name="user" {...p} />;
 export const Award = (p) => <PixelIcon name="award" {...p} />;
+export const Sun = (p) => <PixelIcon name="sun" {...p} />;
+export const Moon = (p) => <PixelIcon name="moon" {...p} />;
