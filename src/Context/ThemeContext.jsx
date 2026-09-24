@@ -26,6 +26,10 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove("light");
     }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", theme === "light" ? "#f4ead8" : "#12101c");
+    }
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch { /* ignore */ }
