@@ -202,16 +202,17 @@ protected route → logout, About, marquee. No horizontal overflow at 390px.
 
 | # | Area | Route/Flow | Description | Severity | Type | Fix phase | Status |
 |---|------|-----------|-------------|----------|------|-----------|--------|
-| 1 | Nav | mobile ≤900px | `.nav-mobile-toggle` sits inside `.nav-right`, which is `display:none` at ≤900px → hamburger never visible; all nav links unreachable on mobile | High | Functional | Phase 3 | Open |
+| 1 | Nav | mobile ≤900px | `.nav-mobile-toggle` sits inside `.nav-right`, which is `display:none` at ≤900px → hamburger never visible; all nav links unreachable on mobile | High | Functional | Phase 3 | Fixed (Phase 3) |
 | 2 | Search | Home | On a failed search, the error state and **stale** previous results render simultaneously; results header shows the failed query ("Found 10 films for \"zzzqqqxyz\"") over old data (`movies` not cleared) | Medium | Functional/UX | Phase 4 | Open |
 | 3 | Home | `/` initial load | Results header shows `Found 10 films for ""` because trending populates `movies` without a query | Low | UX | Phase 4 | Open |
 | 4 | Home | `/` initial load | "Recommended for You" and "Search Results" show identical `2025` content | Low | UX | Phase 4 | Open |
 | 5 | Login | `/login` | `<label>`s not associated with inputs (no `htmlFor`/`id`); screen readers can't associate fields | Medium | A11y | Phase 8 | Open |
 | 6 | Cards | Home/Collection | Favorite button is `opacity:0` until `.movie-card:hover`; invisible on touch/keyboard (undiscoverable) | Medium | A11y/UX | Phase 4/6 | Open |
-| 7 | Nav | mobile menu | `.nav-mobile-menu` links stay in the a11y tree when closed (no `aria-hidden`/`inert`) | Low | A11y | Phase 3 | Open |
+| 7 | Nav | mobile menu | `.nav-mobile-menu` links stay in the a11y tree when closed (no `aria-hidden`/`inert`) | Low | A11y | Phase 3 | Fixed (Phase 3) |
 | 8 | Routing | any unknown URL | No `*` route → blank page instead of a 404 | Medium | Functional | Phase 9 | Open |
-| 9 | Theme | global | `ThemeContext` unused; no light mode reachable | Medium | Functional | Phase 1/3 | Open |
+| 9 | Theme | global | `ThemeContext` unused; no light mode reachable | Medium | Functional | Phase 1/3 | Fixed (Phase 3) |
 | 10 | A11y | global | No skip-to-content link | Low | A11y | Phase 9 | Open |
+| 11 | Home | mobile | `.results-grid` `1fr` tracks blow out from pixel-font `min-content` → ~4px horizontal overflow at 390px | Low | Layout | Phase 4 | Open |
 
 ## 7. File Manifest
 
