@@ -8,18 +8,23 @@ import Login from "./Components/Login";
 import MovieDetail from "./Components/MovieDetail";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ScrollProgress from "./Components/ScrollProgress";
+import NotFound from "./Components/NotFound";
 
 export default function App() {
   const location = useLocation();
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <ScrollProgress />
       <div className="fx-scanlines" />
       <div className="fx-dither" />
 
       <AnimatePresence mode="wait">
         <motion.main
+          id="main-content"
           key={location.pathname}
           className="page-wrap"
           initial={{ opacity: 0 }}
@@ -40,6 +45,7 @@ export default function App() {
             <Route path="/movie/:imdbID" element={<MovieDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.main>
       </AnimatePresence>
