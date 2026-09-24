@@ -1,25 +1,120 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import Home from '../Home'
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ArrowUpRight, Film, Heart, Info } from "lucide-react";
+import { useAuth } from "../Context/AuthContext";
+import MagneticButton from "./MagneticButton";
 
-export default function NavBar({query,setQuery,onSearch}) {
+export default function NavBar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  const navLinks = [
+    { to: "/", label: "Home", num: "01", icon: Film },
+    { to: "/favorites", label: "Collection", num: "02", icon: Heart },
+    { to: "/about", label: "About", num: "03", icon: Info },
+  ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : "?";
+
   return (
-    <nav className='flex bg-black h-[60px] items-center justify-between m-0' >
-      <Link className='text-3xl font-bold animate-gradient bg-gradient-to-r from-red-300 via-red-400  
-       to-red-500 text-transparent bg-clip-text pl-[5px] hover:cursor-pointer
-       ' to = "/">Movies</Link>
-      <div>
-        <input id = "input-search" className = 
-        'border-1 border-[#313131] w-[350px] h-[35px]  rounded-l-[8px] ' 
-        placeholder='       Search here ...'
-        onChange={(e) => setQuery(e.target.value)} />
-        <button className='border-1 border-[#313131] h-[35px] w-[70px] rounded-r-[8px] font-light' onClick={onSearch}>Search</button>
+    <>
+      <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
+        <div className="nav-inner">
+          <div className="nav-left">
+            <span className="nav-link" style={{ color: "var(--cream-3)", cursor: "default" }}>
+              <span className="num">✦</span> Cinema Curated
+            </span>
+            <span className="nav-link" style={{ color: "var(--cream-3)", cursor: "default" }}>
+              <span className="num">N°</span> MMXXVI
+            </span>
+          </div>
+
+          <Link to="/" className="nav-logo">
+            <span className="logo-mark">CM</span>
+            <span>
+              CINEMART
+              <span className="logo-sub">Discover Cinema</span>
+            </span>
+          </Link>
+
+          <div className="nav-right">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`nav-link ${location.pathname === link.to ? "active" : ""}`}
+              >
+                <span className="num">{link.num}</span> {link.label}
+              </Link>
+            ))}
+
+            {user ? (
+              <div className="nav-user-pill">
+                <span className="avatar">{avatarLetter}</span>
+                <span style={{ padding: "0 8px" }}>{user.email?.split("@")[0]}</span>
+                <button onClick={handleLogout}>Exit</button>
+              </div>
+            ) : (
+              <MagneticButton strength={0.3} as="button" className="nav-signin" onClick={() => navigate("/login")}>
+                <span>Sign In</span>
+                <ArrowUpRight className="w-3.5 h-3.5 arrow" />
+              </MagneticButton>
+            )}
+
+            <button
+              className="nav-mobile-toggle"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div
+        className={`nav-mobile-backdrop ${menuOpen ? "open" : ""}`}
+        onClick={() => setMenuOpen(false)}
+      />
+      <div className={`nav-mobile-menu ${menuOpen ? "open" : ""}`}>
+        {navLinks.map((link) => (
+          <Link
+            key={link.to}
+            to={link.to}
+            className={location.pathname === link.to ? "active" : ""}
+          >
+            <span>{link.label}</span>
+            <span className="num">{link.num}</span>
+          </Link>
+        ))}
+        {user ? (
+          <button onClick={handleLogout}>
+            <span>Exit · {user.email?.split("@")[0]}</span>
+            <span className="num">↗</span>
+          </button>
+        ) : (
+          <button onClick={() => navigate("/login")}>
+            <span>Sign In</span>
+            <span className="num">↗</span>
+          </button>
+        )}
       </div>
-      <div>
-        <Link to="/" className='font-medium mr-[10px] '>Home</Link>
-        <Link to="/favorites" className='font-medium mr-[10px] '>Favorites</Link>
-        <Link to="/about" className='font-medium mr-[10px] '>About</Link>
-      </div>
-    </nav>
-  )
+    </>
+  );
 }

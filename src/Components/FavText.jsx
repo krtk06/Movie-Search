@@ -1,12 +1,24 @@
-
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const FavoritesContext = createContext();
 
 export const useFavorites = () => useContext(FavoritesContext);
 
+const STORAGE_KEY = "cinephile_favorites";
+
 export default function FavText({ children }) {
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+  }, [favorites]);
 
   const addToFavorites = (movie) => {
     setFavorites((prev) => {
@@ -20,7 +32,9 @@ export default function FavText({ children }) {
   };
 
   return (
-    <FavoritesContext.Provider value={{ favorites, addToFavorites, removeFromFavorites }}>
+    <FavoritesContext.Provider
+      value={{ favorites, addToFavorites, removeFromFavorites }}
+    >
       {children}
     </FavoritesContext.Provider>
   );

@@ -1,16 +1,48 @@
-import React from 'react'
-import {Routes,Route} from 'react-router-dom'
-import Home from './Home'
-import Favorites from './Components/Favorites'
-import About from './Components/About'
+import React from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react"; // eslint-disable-line no-unused-vars
+import Home from "./Home";
+import Favorites from "./Components/Favorites";
+import About from "./Components/About";
+import Login from "./Components/Login";
+import MovieDetail from "./Components/MovieDetail";
+import ProtectedRoute from "./Components/ProtectedRoute";
+import ScrollProgress from "./Components/ScrollProgress";
+
 export default function App() {
+  const location = useLocation();
+
   return (
-    <main className='bg-[#141414] min-h-screen text-white'>
-      <Routes>
-        <Route path = "/" element = {<Home/>}/>
-        <Route path = "/favorites" element = {<Favorites/>}/>
-        <Route path = "/about" element = {<About/>}/>
-      </Routes>
-    </main>
-  )
+    <>
+      <ScrollProgress />
+      <div className="grain" />
+      <div className="vignette" />
+
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={location.pathname}
+          className="page-wrap"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Routes location={location}>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/favorites"
+              element={
+                <ProtectedRoute>
+                  <Favorites />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/movie/:imdbID" element={<MovieDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </motion.main>
+      </AnimatePresence>
+    </>
+  );
 }
