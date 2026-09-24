@@ -11,15 +11,37 @@ import {
 } from "../API/tmdb.jsx";
 import NavBar from "./NavBar.jsx";
 import RevealOnScroll from "./RevealOnScroll";
-import TiltCard from "./TiltCard";
+import PixelFrame from "./PixelFrame";
 import Marquee from "./Marquee";
 import PlatformIcon from "./PlatformIcon";
 
-const ratingIcons = {
-  "Internet Movie Database": { icon: "IMDb", color: "#f5c518" },
-  "Rotten Tomatoes": { icon: "RT", color: "#fa320a" },
-  Metacritic: { icon: "MC", color: "#19c37d" },
+const RATING_META = {
+  "Internet Movie Database": { short: "IMDb", color: "#f5c518" },
+  "Rotten Tomatoes": { short: "RT", color: "#fa320a" },
+  Metacritic: { short: "MC", color: "#19c37d" },
 };
+
+function ratingPct(value) {
+  const num = String(value).match(/([\d.]+)/);
+  if (!num) return 0;
+  const n = parseFloat(num[1]);
+  if (/%/.test(value)) return Math.min(100, n);
+  const denom = String(value).match(/\/\s*([\d.]+)/);
+  if (denom) return Math.min(100, (n / parseFloat(denom[1])) * 100);
+  if (n <= 10) return n * 10;
+  return Math.min(100, n);
+}
+
+function Meter({ pct, color }) {
+  const on = Math.round(pct / 10);
+  return (
+    <span className="pixel-meter" aria-hidden="true">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <i key={i} className={i < on ? "on" : ""} style={i < on && color ? { background: color } : undefined} />
+      ))}
+    </span>
+  );
+}
 
 export default function MovieDetail() {
   const { imdbID } = useParams();
@@ -30,31 +52,35 @@ export default function MovieDetail() {
   const [streamingLoading, setStreamingLoading] = useState(true);
 
   const { scrollY } = useScroll();
-  const posterY = useTransform(scrollY, [0, 800], [0, -120]);
-  const posterScale = useTransform(scrollY, [0, 800], [1, 1.06]);
-  const posterRotate = useTransform(scrollY, [0, 800], [0, -3]);
-  const infoX = useTransform(scrollY, [0, 600], [0, 30]);
-  const infoOpacity = useTransform(scrollY, [0, 600], [1, 0.6]);
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
+  const posterY = useTransform(scrollY, [0, 800], [0, -90]);
+  const posterScale = useTransform(scrollY, [0, 800], [1, 1.04]);
+  const infoOpacity = useTransform(scrollY, [0, 600], [1, 0.65]);
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.35]);
 
   useEffect(() => {
     if (!imdbID) return;
+    let alive = true;
     setLoading(true);
     getMovieById(imdbID)
       .then((data) => {
+        if (!alive) return;
         if (data.Response === "False") throw new Error(data.Error);
         setMovie(data);
       })
-      .catch(() => setMovie(null))
-      .finally(() => setLoading(false));
+      .catch(() => alive && setMovie(null))
+      .finally(() => alive && setLoading(false));
+    return () => { alive = false; };
   }, [imdbID]);
 
   useEffect(() => {
+    let alive = true;
     setStreamingLoading(true);
     getStreamingProviders(imdbID).then((result) => {
+      if (!alive) return;
       setStreamingResult(result);
       setStreamingLoading(false);
     });
+    return () => { alive = false; };
   }, [imdbID]);
 
   useEffect(() => {
@@ -84,9 +110,9 @@ export default function MovieDetail() {
             <Film className="w-12 h-12" />
             <p>Film not found</p>
             <p className="sub">The film you're looking for has slipped the reel</p>
-            <Link to="/" className="btn-discover">
-              <span>Back to Search</span>
+            <Link to="/" className="pixel-btn">
               <ArrowLeft className="w-4 h-4" />
+              Back to Search
             </Link>
           </div>
         </div>
@@ -101,7 +127,7 @@ export default function MovieDetail() {
   let visiblePlatforms;
   let streamingError = null;
   const noKeyConfigured = streamingResult && streamingResult.providers === null;
-  if (streamingResult && streamingResult.providers === null) {
+  if (noKeyConfigured) {
     visiblePlatforms = ALL_PLATFORM_KEYS.map((key) => ({
       key,
       name: PLATFORM_NAMES[key],
@@ -126,23 +152,13 @@ export default function MovieDetail() {
         </Link>
 
         <div className="detail-hero">
-          <motion.div
-            style={{
-              y: posterY,
-              scale: posterScale,
-              rotateZ: posterRotate,
-            }}
-          >
-            <TiltCard maxTilt={3} glare={false} className="detail-poster">
-              <img
-                src={posterSrc}
-                alt={movie.Title}
-                onError={() => setImgError(true)}
-              />
-            </TiltCard>
+          <motion.div style={{ y: posterY, scale: posterScale }}>
+            <PixelFrame className="detail-poster">
+              <img src={posterSrc} alt={movie.Title} onError={() => setImgError(true)} />
+            </PixelFrame>
           </motion.div>
 
-          <motion.div className="detail-info" style={{ x: infoX, opacity: infoOpacity }}>
+          <motion.div className="detail-info" style={{ opacity: infoOpacity }}>
             <RevealOnScroll y={20} delay={0.05}>
               <div className="detail-eyebrow">
                 <span className="num">No. {imdbID}</span>
@@ -162,24 +178,18 @@ export default function MovieDetail() {
               <div className="detail-meta">
                 {movie.Year && movie.Year !== "N/A" && (
                   <span className="detail-meta-item">
-                    <Calendar className="w-3 h-3" />
+                    <Calendar className="w-3.5 h-3.5" />
                     {movie.Year}
                   </span>
                 )}
                 {movie.Runtime && movie.Runtime !== "N/A" && (
-                  <>
-                    <span className="detail-meta-divider" />
-                    <span className="detail-meta-item">
-                      <Clock className="w-3 h-3" />
-                      {movie.Runtime}
-                    </span>
-                  </>
+                  <span className="detail-meta-item">
+                    <Clock className="w-3.5 h-3.5" />
+                    {movie.Runtime}
+                  </span>
                 )}
                 {movie.Rated && movie.Rated !== "N/A" && (
-                  <>
-                    <span className="detail-meta-divider" />
-                    <span className="detail-meta-item rated">{movie.Rated}</span>
-                  </>
+                  <span className="detail-meta-item rated">{movie.Rated}</span>
                 )}
               </div>
             </RevealOnScroll>
@@ -200,13 +210,14 @@ export default function MovieDetail() {
               <RevealOnScroll y={20} delay={0.5}>
                 <div className="detail-ratings">
                   {ratings.map((r) => {
-                    const info = ratingIcons[r.Source] || { icon: r.Source, color: "#888" };
+                    const meta = RATING_META[r.Source] || { short: r.Source, color: "var(--accent)" };
                     return (
                       <div key={r.Source} className="detail-rating-box">
-                        <span className="detail-rating-source" style={{ color: info.color }}>
-                          {info.icon}
+                        <span className="detail-rating-source" style={{ color: meta.color }}>
+                          {meta.short}
                         </span>
                         <span className="detail-rating-value">{r.Value}</span>
+                        <Meter pct={ratingPct(r.Value)} color={meta.color} />
                       </div>
                     );
                   })}
@@ -227,7 +238,7 @@ export default function MovieDetail() {
               <div className="detail-credits">
                 {movie.Director && movie.Director !== "N/A" && (
                   <div className="detail-credit-item">
-                    <User className="w-3.5 h-3.5 icon" />
+                    <User className="w-4 h-4 icon" />
                     <div>
                       <span className="detail-credit-label">Director</span>
                       <span className="detail-credit-value">{movie.Director}</span>
@@ -236,7 +247,7 @@ export default function MovieDetail() {
                 )}
                 {movie.Writer && movie.Writer !== "N/A" && (
                   <div className="detail-credit-item">
-                    <User className="w-3.5 h-3.5 icon" />
+                    <User className="w-4 h-4 icon" />
                     <div>
                       <span className="detail-credit-label">Writer</span>
                       <span className="detail-credit-value">{movie.Writer}</span>
@@ -245,7 +256,7 @@ export default function MovieDetail() {
                 )}
                 {movie.Actors && movie.Actors !== "N/A" && (
                   <div className="detail-credit-item full">
-                    <User className="w-3.5 h-3.5 icon" />
+                    <User className="w-4 h-4 icon" />
                     <div>
                       <span className="detail-credit-label">Cast</span>
                       <span className="detail-credit-value">{movie.Actors}</span>
@@ -257,13 +268,13 @@ export default function MovieDetail() {
 
             {(movie.Awards || movie.BoxOffice) && (
               <RevealOnScroll y={20} delay={0.8}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20, marginBottom: 48, paddingTop: 32, borderTop: "1px solid var(--border-2)" }}>
+                <div className="detail-extras">
                   {movie.Awards && movie.Awards !== "N/A" && (
                     <div className="detail-credit-item">
                       <Award className="w-4 h-4 icon" />
                       <div>
                         <span className="detail-credit-label">Awards</span>
-                        <span className="detail-credit-value" style={{ fontSize: 15 }}>{movie.Awards}</span>
+                        <span className="detail-credit-value">{movie.Awards}</span>
                       </div>
                     </div>
                   )}
@@ -272,7 +283,7 @@ export default function MovieDetail() {
                       <Star className="w-4 h-4 icon" />
                       <div>
                         <span className="detail-credit-label">Box Office</span>
-                        <span className="detail-credit-value" style={{ fontSize: 15 }}>{movie.BoxOffice}</span>
+                        <span className="detail-credit-value">{movie.BoxOffice}</span>
                       </div>
                     </div>
                   )}
@@ -281,7 +292,7 @@ export default function MovieDetail() {
             )}
 
             <RevealOnScroll y={20} delay={0.9}>
-              <div>
+              <div className="detail-watch">
                 <div className="detail-plot-label">Where to Watch</div>
                 {streamingLoading ? (
                   <div className="detail-streaming-loading">
@@ -302,7 +313,7 @@ export default function MovieDetail() {
                         title={`Watch on ${p.name}`}
                       >
                         <span className="icon-wrap">
-                          <PlatformIcon platform={p.key} size={26} />
+                          <PlatformIcon platform={p.key} size={24} />
                         </span>
                         <span className="name">{p.name}</span>
                       </a>
@@ -317,17 +328,17 @@ export default function MovieDetail() {
             {((movie.Country && movie.Country !== "N/A") ||
               (movie.Language && movie.Language !== "N/A")) && (
               <RevealOnScroll y={20} delay={1.0}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 32, marginTop: 48, paddingTop: 32, borderTop: "1px solid var(--border-2)" }}>
+                <div className="detail-extras">
                   {movie.Country && movie.Country !== "N/A" && (
-                    <div>
+                    <div className="detail-credit-item">
                       <span className="detail-credit-label">Country</span>
-                      <span className="detail-credit-value" style={{ fontSize: 15 }}>{movie.Country}</span>
+                      <span className="detail-credit-value">{movie.Country}</span>
                     </div>
                   )}
                   {movie.Language && movie.Language !== "N/A" && (
-                    <div>
+                    <div className="detail-credit-item">
                       <span className="detail-credit-label">Language</span>
-                      <span className="detail-credit-value" style={{ fontSize: 15 }}>{movie.Language}</span>
+                      <span className="detail-credit-value">{movie.Language}</span>
                     </div>
                   )}
                 </div>
