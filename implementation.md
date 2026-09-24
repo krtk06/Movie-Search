@@ -206,7 +206,7 @@ protected route → logout, About, marquee. No horizontal overflow at 390px.
 | 2 | Search | Home | On a failed search, the error state and **stale** previous results render simultaneously; results header shows the failed query ("Found 10 films for \"zzzqqqxyz\"") over old data (`movies` not cleared) | Medium | Functional/UX | Phase 4 | Fixed (Phase 4) |
 | 3 | Home | `/` initial load | Results header shows `Found 10 films for ""` because trending populates `movies` without a query | Low | UX | Phase 4 | Fixed (Phase 4) |
 | 4 | Home | `/` initial load | "Recommended for You" and "Search Results" show identical `2025` content | Low | UX | Phase 4 | Fixed (Phase 4) |
-| 5 | Login | `/login` | `<label>`s not associated with inputs (no `htmlFor`/`id`); screen readers can't associate fields | Medium | A11y | Phase 8 | Open |
+| 5 | Login | `/login` | `<label>`s not associated with inputs (no `htmlFor`/`id`); screen readers can't associate fields | Medium | A11y | Phase 8 | Fixed (Phase 8) |
 | 6 | Cards | Home/Collection | Favorite button is `opacity:0` until `.movie-card:hover`; invisible on touch/keyboard (undiscoverable) | Medium | A11y/UX | Phase 4/6 | Fixed (Phase 4) |
 | 7 | Nav | mobile menu | `.nav-mobile-menu` links stay in the a11y tree when closed (no `aria-hidden`/`inert`) | Low | A11y | Phase 3 | Fixed (Phase 3) |
 | 8 | Routing | any unknown URL | No `*` route → blank page instead of a 404 | Medium | Functional | Phase 9 | Open |
