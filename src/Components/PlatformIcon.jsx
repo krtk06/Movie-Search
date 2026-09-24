@@ -1,286 +1,74 @@
-import React from "react";
+/**
+ * PlatformIcon — pixel-art streaming-provider marks.
+ *
+ * Each brand is a solid colour tile with an axis-aligned 2px-pixel glyph,
+ * drawn on a 24×24 grid with `shape-rendering: crispEdges`.
+ */
 
-// Inline brand SVG icons — clean, recognizable, no external dependencies.
-// Sized via .icon { width; height } from CSS.
-
-const baseProps = {
-  xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 64 64",
-  width: "1em",
-  height: "1em",
-  "aria-hidden": "true",
+const BRANDS = {
+  netflix: {
+    bg: "#141414", fg: "#E50914",
+    r: [[6, 5, 2, 14], [16, 5, 2, 14], [8, 7, 2, 3], [10, 10, 2, 3], [12, 13, 2, 3], [14, 6, 2, 4]],
+  },
+  prime: {
+    bg: "#0F171E", fg: "#00A8E1",
+    r: [[4, 11, 9, 2], [12, 8, 2, 2], [14, 10, 2, 2], [16, 11, 2, 2], [14, 12, 2, 2], [12, 14, 2, 2]],
+  },
+  disney: {
+    bg: "#0B1B3A", fg: "#FFFFFF",
+    r: [[5, 6, 2, 12], [7, 6, 2, 2], [7, 16, 2, 2], [9, 8, 2, 8], [16, 7, 2, 6], [14, 9, 6, 2]],
+  },
+  hulu: {
+    bg: "#0B0F14", fg: "#1CE783",
+    r: [[5, 7, 2, 10], [11, 7, 2, 10], [5, 11, 8, 2]],
+  },
+  apple: {
+    bg: "#000000", fg: "#FFFFFF",
+    r: [[10, 6, 4, 2], [8, 8, 8, 10], [12, 4, 2, 2]],
+  },
+  max: {
+    bg: "#001B3D", fg: "#FFFFFF",
+    r: [[5, 7, 2, 10], [17, 7, 2, 10], [7, 9, 2, 2], [9, 11, 2, 2], [11, 11, 2, 2], [13, 9, 2, 2], [15, 7, 2, 4]],
+  },
+  paramount: {
+    bg: "#0064FF", fg: "#FFFFFF",
+    r: [[5, 17, 14, 2], [5, 15, 2, 2], [7, 13, 2, 2], [9, 11, 2, 2], [11, 9, 2, 2], [13, 11, 2, 2], [15, 13, 2, 2], [17, 15, 2, 2]],
+  },
+  peacock: {
+    bg: "#0B0F14", fg: "#FF8A00",
+    r: [[11, 11, 2, 2], [11, 4, 2, 5], [11, 15, 2, 5], [4, 11, 5, 2], [15, 11, 5, 2], [6, 6, 2, 2], [16, 6, 2, 2], [6, 16, 2, 2], [16, 16, 2, 2]],
+  },
 };
-
-export function NetflixIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <path
-        d="M22 10 H28 L36 40 V10 H42 V54 H36 L28 24 V54 H22 Z"
-        fill="#E50914"
-      />
-    </svg>
-  );
-}
-
-export function PrimeIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <text
-        x="32"
-        y="26"
-        textAnchor="middle"
-        fontFamily="Inter, sans-serif"
-        fontWeight="800"
-        fontSize="13"
-        fill="#00A8E1"
-        letterSpacing="0.5"
-      >
-        prime
-      </text>
-      <path
-        d="M14 32 Q22 36 32 36 T52 32"
-        stroke="#00A8E1"
-        strokeWidth="2.2"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M46 30 L52 32 L48 36"
-        stroke="#00A8E1"
-        strokeWidth="2.2"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-export function DisneyIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <text
-        x="32"
-        y="28"
-        textAnchor="middle"
-        fontFamily="serif"
-        fontStyle="italic"
-        fontWeight="700"
-        fontSize="22"
-        fill="#FFFFFF"
-      >
-        D
-      </text>
-      <path
-        d="M40 28 H50"
-        stroke="#FFFFFF"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M46 24 V32"
-        stroke="#FFFFFF"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M14 38 H50"
-        stroke="#FFFFFF"
-        strokeWidth="1.2"
-        opacity="0.4"
-      />
-      <text
-        x="32"
-        y="50"
-        textAnchor="middle"
-        fontFamily="Inter, sans-serif"
-        fontWeight="500"
-        fontSize="7"
-        fill="#FFFFFF"
-        letterSpacing="2"
-      >
-        DISNEY
-      </text>
-    </svg>
-  );
-}
-
-export function HuluIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <text
-        x="32"
-        y="38"
-        textAnchor="middle"
-        fontFamily="Inter, sans-serif"
-        fontWeight="800"
-        fontSize="20"
-        fill="#1CE783"
-        fontStyle="italic"
-      >
-        hulu
-      </text>
-    </svg>
-  );
-}
-
-export function AppleIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <path
-        d="M40.5 34.5 c-0.5-4 3-6 3-6-1.5-2.5-4-3-5-3-2-0.2-4 1.2-5 1.2s-3-1.2-4.8-1.1c-2.5 0-4.8 1.4-6 3.7-2.6 4.5-0.7 11 1.9 14.5 1.2 1.7 2.6 3.6 4.5 3.5 1.8-0.1 2.5-1.2 4.6-1.2 2.2 0 2.7 1.2 4.6 1.1 1.9 0 3.1-1.7 4.3-3.4 1.3-1.9 1.9-3.8 1.9-3.9 0 0-3.5-1.4-3.5-5.4 z M37 19.5 c1-1.2 1.6-2.8 1.4-4.5-1.4 0.1-3 0.9-4 2.1-0.9 1-1.6 2.7-1.4 4.3 1.6 0.1 3.1-0.8 4-1.9 z"
-        fill="#FFFFFF"
-      />
-      <text
-        x="32"
-        y="54"
-        textAnchor="middle"
-        fontFamily="Inter, sans-serif"
-        fontWeight="500"
-        fontSize="6.5"
-        fill="#FFFFFF"
-        letterSpacing="1.5"
-      >
-        TV+
-      </text>
-    </svg>
-  );
-}
-
-export function MaxIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <text
-        x="32"
-        y="42"
-        textAnchor="middle"
-        fontFamily="serif"
-        fontWeight="800"
-        fontSize="32"
-        fill="#FFFFFF"
-        fontStyle="italic"
-      >
-        M
-      </text>
-      <path
-        d="M18 16 L46 16"
-        stroke="#0046FF"
-        strokeWidth="2"
-        opacity="0.6"
-      />
-    </svg>
-  );
-}
-
-export function ParamountIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <path
-        d="M10 46 L22 22 L32 38 L42 18 L54 46"
-        stroke="#0064FF"
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M28 50 L34 50"
-        stroke="#0064FF"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-export function PeacockIcon({ size = 24 }) {
-  return (
-    <svg {...baseProps} width={size} height={size} style={{ display: "block" }}>
-      <rect x="4" y="4" width="56" height="56" rx="8" fill="#0F1422" />
-      <g transform="translate(32 32)">
-        <ellipse cx="0" cy="-8" rx="2.2" ry="6" fill="#FF8A00" />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(45)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(90)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(135)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(180)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(225)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(270)"
-        />
-        <ellipse
-          cx="0"
-          cy="-8"
-          rx="2.2"
-          ry="6"
-          fill="#FF8A00"
-          transform="rotate(315)"
-        />
-        <circle cx="0" cy="0" r="2.5" fill="#FF8A00" />
-      </g>
-    </svg>
-  );
-}
 
 const ICONS = {
-  netflix: NetflixIcon,
-  prime: PrimeIcon,
-  disney: DisneyIcon,
-  hulu: HuluIcon,
-  apple: AppleIcon,
-  max: MaxIcon,
-  paramount: ParamountIcon,
-  peacock: PeacockIcon,
-  hbo: MaxIcon,
+  netflix: BRANDS.netflix,
+  prime: BRANDS.prime,
+  disney: BRANDS.disney,
+  hulu: BRANDS.hulu,
+  apple: BRANDS.apple,
+  max: BRANDS.max,
+  paramount: BRANDS.paramount,
+  peacock: BRANDS.peacock,
+  hbo: BRANDS.max,
 };
 
-export default function PlatformIcon({ platform, size = 28 }) {
-  const Icon = ICONS[platform] || MaxIcon;
-  return <Icon size={size} />;
+export default function PlatformIcon({ platform, size = 24 }) {
+  const brand = ICONS[platform] || BRANDS.max;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      focusable="false"
+      style={{ display: "block" }}
+    >
+      <rect x="0" y="0" width="24" height="24" fill={brand.bg} />
+      {brand.r.map(([x, y, w, h], i) => (
+        <rect key={i} x={x} y={y} width={w} height={h} fill={brand.fg} />
+      ))}
+      <rect x="0.5" y="0.5" width="23" height="23" fill="none" stroke="rgba(0,0,0,0.5)" />
+    </svg>
+  );
 }
