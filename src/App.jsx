@@ -15,8 +15,8 @@ export default function App() {
   return (
     <>
       <ScrollProgress />
-      <div className="grain" />
-      <div className="vignette" />
+      <div className="fx-scanlines" />
+      <div className="fx-dither" />
 
       <AnimatePresence mode="wait">
         <motion.main

@@ -1,49 +1,120 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #1A0A0A;
-  --ink-2: #2D0A0E;
-  --ink-3: #3D0E12;
-  --ink-4: #5C0E1B;
-  --cream: #F5E6E6;
-  --cream-2: #E8D5D5;
-  --cream-3: #C4A0A0;
-  --ash: #8B5E5E;
-  --ash-2: #6B3A3A;
+  color-scheme: dark;
 
-  --accent: #DC143C;
-  --accent-2: #A0102E;
-  --accent-soft: rgba(220, 20, 60, 0.15);
-  --accent-glow: rgba(220, 20, 60, 0.35);
-  --maroon: #800020;
-  --maroon-light: #A00030;
-  --gold: #D4A030;
-  --gold-soft: rgba(212, 160, 48, 0.15);
+  /* ─── Surfaces ─── */
+  --ink: #12101c;        /* app background */
+  --ink-2: #1b1830;      /* secondary surface */
+  --ink-3: #221d38;      /* panel */
+  --ink-4: #2b2447;      /* raised / scrollbar */
 
-  --surface-1: rgba(220, 20, 60, 0.025);
-  --surface-2: rgba(220, 20, 60, 0.05);
-  --surface-3: rgba(220, 20, 60, 0.08);
-  --border: rgba(220, 20, 60, 0.08);
-  --border-2: rgba(220, 20, 60, 0.14);
-  --border-strong: rgba(220, 20, 60, 0.24);
+  /* ─── Text ─── */
+  --cream: #f4ead8;      /* primary text */
+  --cream-2: #c9bfa8;    /* secondary text */
+  --cream-3: #8a7f6a;    /* muted text */
+  --ash: #8a7f6a;        /* placeholder */
+  --ash-2: #c9bfa8;
 
-  --glow: 0 0 0 1px rgba(220, 20, 60, 0.35), 0 0 32px -4px rgba(220, 20, 60, 0.22);
+  /* ─── Accents ─── */
+  --accent: #e5344a;
+  --accent-2: #b02638;
+  --accent-soft: rgba(229, 52, 74, 0.15);
+  --accent-glow: rgba(229, 52, 74, 0.35);
+  --maroon: #7a1420;
+  --maroon-light: #a3222f;
+  --gold: #f2b632;
+  --gold-soft: rgba(242, 182, 50, 0.15);
+  --ok: #6ab04c;
+  --err: #e5344a;
+  --info: #4aa3e5;
 
-  --font-display: "Exo 2", sans-serif;
-  --font-body: "Barlow Semi Condensed", sans-serif;
-  --font-mono: "Barlow Semi Condensed", sans-serif;
-  --font-serif: "Exo 2", sans-serif;
+  /* ─── Surfaces / borders ─── */
+  --surface-1: rgba(244, 234, 216, 0.03);
+  --surface-2: rgba(244, 234, 216, 0.06);
+  --surface-3: rgba(244, 234, 216, 0.1);
+  --border: rgba(244, 234, 216, 0.14);
+  --border-2: rgba(244, 234, 216, 0.22);
+  --border-strong: rgba(244, 234, 216, 0.4);
+  --line: #000000;
 
+  /* ─── Pixel shape & shadow ─── */
+  --radius: 0;
+  --bw: 3px;
+  --glow: 4px 4px 0 var(--line);
+  --shadow-sm: 3px 3px 0 var(--line);
+  --shadow: 4px 4px 0 var(--line);
+  --shadow-lg: 6px 6px 0 var(--line);
+
+  /* ─── Semantic aliases (prefer these going forward) ─── */
+  --bg: var(--ink);
+  --bg-2: var(--ink-2);
+  --panel: var(--ink-3);
+  --panel-2: var(--ink-4);
+  --text: var(--cream);
+  --text-muted: var(--cream-3);
+
+  /* ─── z-index scale ─── */
+  --z-menu: 95;
+  --z-nav: 100;
+  --z-fx: 9990;
+
+  /* ─── Fonts ─── */
+  --font-display: "Press Start 2P", ui-monospace, monospace;
+  --font-body: "Pixelify Sans", ui-sans-serif, sans-serif;
+  --font-mono: "Pixelify Sans", ui-monospace, monospace;
+  --font-serif: "Press Start 2P", ui-monospace, monospace;
+
+  /* ─── Motion (snappy, stepped) ─── */
+  --fast: 90ms;
+  --med: 180ms;
+  --slow: 320ms;
+  --step-2: steps(2, end);
+  --step-4: steps(4, end);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
 }
 
-* {
+/* ─── Light pixel theme ─── */
+html.light {
+  color-scheme: light;
+
+  --ink: #f4ead8;        /* app background */
+  --ink-2: #ece0c8;
+  --ink-3: #fff8e7;
+  --ink-4: #f7efd8;
+
+  --cream: #201a2e;      /* primary text */
+  --cream-2: #4a4058;
+  --cream-3: #7a7088;
+  --ash: #7a7088;
+  --ash-2: #4a4058;
+
+  --accent: #d21f36;
+  --accent-2: #9c1b2c;
+  --accent-soft: rgba(210, 31, 54, 0.15);
+  --accent-glow: rgba(210, 31, 54, 0.35);
+  --maroon: #8a1622;
+  --maroon-light: #b02437;
+  --gold: #b07a00;
+  --gold-soft: rgba(176, 122, 0, 0.15);
+
+  --surface-1: rgba(32, 26, 46, 0.04);
+  --surface-2: rgba(32, 26, 46, 0.07);
+  --surface-3: rgba(32, 26, 46, 0.1);
+  --border: rgba(32, 26, 46, 0.18);
+  --border-2: rgba(32, 26, 46, 0.28);
+  --border-strong: rgba(32, 26, 46, 0.45);
+  --line: #201a2e;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  border-radius: 0 !important;
 }
 
 html {
@@ -59,39 +130,58 @@ body {
   font-family: var(--font-body);
   font-weight: 400;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.55;
   letter-spacing: 0.01em;
   overflow-x: hidden;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Pixel-perfect bitmap scaling for raster media */
+img,
+video,
+canvas {
+  image-rendering: pixelated;
+}
+.pixelated { image-rendering: pixelated; }
 
 ::selection {
   background: var(--accent);
-  color: var(--ink);
+  color: var(--bg);
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--ink); }
-::-webkit-scrollbar-thumb { background: var(--ink-4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--ash-2); }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--ink-4); border: 3px solid var(--bg-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* ─── Grain Overlay ─── */
-.grain {
+/* ─── CRT scanlines ─── */
+.fx-scanlines {
   position: fixed;
   inset: 0;
-  z-index: 9990;
+  z-index: var(--z-fx);
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5) 0,
+    rgba(0, 0, 0, 0.5) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+html.light .fx-scanlines { opacity: 0.1; }
+
+/* ─── Dither / grain overlay ─── */
+.fx-dither {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-fx) - 1);
+  pointer-events: none;
+  opacity: 0.06;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* ─── Vignette ─── */
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 9989;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(26,10,10,0.6) 100%);
 }
 
 /* ─── Animations ─── */
@@ -140,15 +230,15 @@ body {
 /* ─── Typography ─── */
 .display {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.25;
 }
 .display-italic {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 .eyebrow {
   font-family: var(--font-body);
@@ -1992,10 +2082,6 @@ main { position: relative; min-height: 100vh; }
 /* ══════════════════════════════════════════════════════════════
    FOCUS & UTILITY
    ══════════════════════════════════════════════════════════════ */
-*:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -2006,4 +2092,39 @@ main { position: relative; min-height: 100vh; }
   .marquee-track { animation: none !important; }
   .scroll-progress { display: none; }
   .hero-tagline-line { animation: none !important; opacity: 1 !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PIXEL TYPE SCALE (override layer)
+   "Press Start 2P" renders far wider than a normal sans, so the
+   display-face sizes are clamped down here. Per-component phases
+   refine these further.
+   ══════════════════════════════════════════════════════════════ */
+.nav-logo { font-size: 15px; font-weight: 400; letter-spacing: 0; }
+.hero-logo { font-size: clamp(34px, 7.5vw, 92px); font-weight: 400; line-height: 1.15; letter-spacing: 0; }
+.section-title { font-size: clamp(18px, 2.6vw, 32px); font-weight: 400; line-height: 1.5; letter-spacing: 0; }
+.movie-card-info h3 { font-size: 12px; font-weight: 400; line-height: 1.5; letter-spacing: 0; }
+.empty-state p { font-size: 18px; font-weight: 400; }
+.detail-title { font-size: clamp(24px, 4.2vw, 52px); font-weight: 400; line-height: 1.25; letter-spacing: 0; }
+.detail-rating-value { font-size: 20px; font-weight: 400; }
+.detail-credit-value { font-size: 13px; font-weight: 400; }
+.fav-header h1 { font-size: clamp(22px, 3.6vw, 38px); font-weight: 400; line-height: 1.3; letter-spacing: 0; }
+.about-title { font-size: clamp(34px, 6.5vw, 84px); font-weight: 400; line-height: 1.15; letter-spacing: 0; }
+.about-blockquote blockquote { font-size: clamp(18px, 2.6vw, 30px); font-weight: 400; line-height: 1.45; letter-spacing: 0; }
+.about-blockquote .quote-mark { font-size: 72px; }
+.about-blockquote::before { font-size: 120px; }
+.about-grid-item h3 { font-size: 22px; font-weight: 400; line-height: 1.35; letter-spacing: 0; }
+.login-title-block h2 { font-size: clamp(24px, 3.6vw, 38px); font-weight: 400; line-height: 1.3; letter-spacing: 0; }
+.login-side-quote p { font-size: 20px; font-weight: 400; line-height: 1.45; letter-spacing: 0; }
+.login-side-logo { font-size: 18px; letter-spacing: 0; }
+.nav-mobile-menu a, .nav-mobile-menu button { font-size: 18px; font-weight: 400; letter-spacing: 0; }
+.marquee-track { font-size: 20px; font-weight: 400; letter-spacing: 0; }
+@media (max-width: 768px) {
+  .marquee-track { font-size: 15px; }
+}
+
+/* Pixel focus ring */
+*:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
