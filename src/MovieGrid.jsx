@@ -9,6 +9,8 @@ import TiltCard from "./Components/TiltCard";
 import { Heart, Film, Search, Star, ArrowRight, Languages, Clock, Sparkles } from "./Components/PixelIcon";
 import { useFavorites } from "./Components/FavText.jsx";
 
+const TRENDING_QUERY = "2025";
+
 const SUGGESTIONS = ["2025", "Action", "Drama", "Sci-Fi", "Thriller", "Animation", "Horror", "Comedy"];
 
 const TAGLINES = [
@@ -18,7 +20,9 @@ const TAGLINES = [
   "Find your next favorite movie, one story at a time.",
 ];
 
-const RECOMMENDED_QUERIES = ["2025", "2024", "popular", "marvel", "action", "drama", "sci-fi", "comedy", "thriller", "animation", "horror", "romance"];
+const RECOMMENDED_QUERIES = [
+  "2010", "2014", "2019", "2008", "2001", "1999", "2024", "1988", "2003", "1995",
+];
 
 const cardVariants = {
   hidden: { opacity: 0, y: 50, scale: 0.95 },
@@ -26,33 +30,37 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.7, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] },
   }),
-  exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.4, ease: [0.4, 0, 1, 1] } },
+  exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
 };
+
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
 function MovieCard({ movie, index, isFavorite, onToggleFavorite }) {
   const [heartBurst, setHeartBurst] = useState(false);
   const [rating, setRating] = useState(null);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     if (!movie.imdbRating) {
       setRatingLoading(true);
       getMovieById(movie.imdbID)
         .then((data) => {
+          if (!alive) return;
           const r = parseFloat(data.imdbRating);
           setRating(isNaN(r) ? null : r);
         })
-        .catch(() => setRating(null))
-        .finally(() => setRatingLoading(false));
+        .catch(() => alive && setRating(null))
+        .finally(() => alive && setRatingLoading(false));
     } else {
       const r = parseFloat(movie.imdbRating);
       setRating(isNaN(r) ? null : r);
     }
-  }, [movie.imdbID]);
+    return () => { alive = false; };
+  }, [movie.imdbID, movie.imdbRating]);
 
   const handleHeartClick = (e) => {
     e.preventDefault();
@@ -73,82 +81,45 @@ function MovieCard({ movie, index, isFavorite, onToggleFavorite }) {
       exit="exit"
       layout
       layoutId={movie.imdbID}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{ display: "block", textDecoration: "none", color: "inherit" }}
+      className="movie-card-wrap"
     >
-      <Link
-        to={`/movie/${movie.imdbID}`}
-        style={{ display: "block", textDecoration: "none", color: "inherit" }}
-      >
-        <TiltCard maxTilt={4} glare={false} className="movie-card">
-          <motion.div
-            className="movie-card-poster-wrap"
-            animate={{ y: isHovered ? -6 : 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
+      <Link to={`/movie/${movie.imdbID}`} className="movie-card-link">
+        <TiltCard maxTilt={3} glare={false} className="movie-card">
+          <div className="movie-card-poster-wrap">
             <div className="movie-card-poster">
-              <motion.img
+              <img
                 src={posterSrc}
                 alt={movie.Title}
                 loading="lazy"
                 onError={() => setImgError(true)}
-                animate={{
-                  scale: isHovered ? 1.08 : 1,
-                  filter: isHovered ? "saturate(1.1) contrast(1.1) brightness(1)" : "saturate(0.9) contrast(1.05) brightness(0.9)",
-                }}
-                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
-            <motion.div
-              className="movie-card-overlay"
-              animate={{ opacity: isHovered ? 1 : 0 }}
-              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-            />
+            <div className="movie-card-overlay" />
 
-            <div className="movie-card-num">
-              {String(index + 1).padStart(3, "0")}
-            </div>
+            <span className="movie-card-num">{String(index + 1).padStart(3, "0")}</span>
 
-            <motion.div
-              className={`movie-card-rating ${rating !== null ? "loaded" : ""} ${ratingLoading ? "loading" : ""}`}
-              animate={{ opacity: rating !== null ? 1 : 0, y: rating !== null ? 0 : -4 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {ratingLoading ? "···" : rating !== null ? (
-                <><Star className="w-2.5 h-2.5" style={{ fill: "currentColor" }} />{rating.toFixed(1)}</>
-              ) : null}
-            </motion.div>
+            {(rating !== null || ratingLoading) && (
+              <span className="movie-card-rating">
+                {ratingLoading ? "···" : <><Star className="w-2.5 h-2.5" />{rating.toFixed(1)}</>}
+              </span>
+            )}
 
-            <motion.button
+            <span className="movie-card-year">{movie.Year}</span>
+
+            <button
+              type="button"
               onClick={handleHeartClick}
-              className={`movie-card-fav ${isFavorite ? "favorited" : ""}`}
-              aria-label="Toggle favorite"
-              animate={{ opacity: isFavorite || isHovered ? 1 : 0, y: isFavorite || isHovered ? 0 : 8 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              className={`movie-card-fav ${isFavorite ? "favorited" : ""} ${heartBurst ? "heart-burst" : ""}`}
+              aria-label={isFavorite ? `Remove ${movie.Title} from collection` : `Add ${movie.Title} to collection`}
+              aria-pressed={isFavorite}
             >
-              <Heart className={`w-4 h-4 transition-all ${isFavorite ? "fill-current" : ""} ${heartBurst ? "heart-burst" : ""}`} />
-            </motion.button>
-
-            <motion.div
-              className="movie-card-year"
-              animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 8 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {movie.Year}
-            </motion.div>
-          </motion.div>
+              <Heart className="w-4 h-4" />
+            </button>
+          </div>
 
           <div className="movie-card-info">
-            <motion.h3
-              animate={{ color: isHovered ? "var(--accent)" : "var(--cream)" }}
-              transition={{ duration: 0.3 }}
-            >
-              {movie.Title}
-            </motion.h3>
-            <span className="type">{movie.Type || "Film"}</span>
+            <h3>{movie.Title}</h3>
+            <span className="type">{movie.Type || "film"}</span>
           </div>
         </TiltCard>
       </Link>
@@ -156,17 +127,61 @@ function MovieCard({ movie, index, isFavorite, onToggleFavorite }) {
   );
 }
 
+function SectionHead({ eyebrow, title, meta }) {
+  return (
+    <div className="section-head">
+      <div className="section-head-main">
+        <span className="eyebrow-accent">{eyebrow}</span>
+        <h2 className="section-title">{title}</h2>
+      </div>
+      {meta ? <div className="section-meta">{meta}</div> : null}
+    </div>
+  );
+}
+
+function MovieGrid({ items, isFavorite, toggleFavorite }) {
+  return (
+    <motion.div className="results-grid" layout>
+      <AnimatePresence mode="popLayout">
+        {items.map((movie, index) => (
+          <MovieCard
+            key={movie.imdbID}
+            movie={movie}
+            index={index}
+            isFavorite={isFavorite(movie)}
+            onToggleFavorite={toggleFavorite}
+          />
+        ))}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function SkeletonGrid({ count = 8 }) {
+  return (
+    <div className="results-grid">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="skeleton-card">
+          <div className="skeleton-poster pixel-skeleton" />
+          <div className="skeleton-text pixel-skeleton" />
+          <div className="skeleton-text short pixel-skeleton" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function MoviesGrid() {
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
-  const [trendingLoaded, setTrendingLoaded] = useState(false);
   const [translation, setTranslation] = useState(null);
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [recommended, setRecommended] = useState([]);
-  const [recLoaded, setRecLoaded] = useState(false);
+  const [trending, setTrending] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
   const searchInputRef = useRef(null);
@@ -179,69 +194,75 @@ export default function MoviesGrid() {
     return () => clearInterval(ti);
   }, []);
 
-  // Load initial trending
+  // Initial "Now Showing" (trending) load
   useEffect(() => {
-    if (!trendingLoaded) {
-      setTrendingLoaded(true);
-      setLoading(true);
-      setHasSearched(true);
-      searchMovies("2025")
-        .then((data) => setMovies(data))
-        .catch(() => {/* ignore */})
-        .finally(() => setLoading(false));
-    }
+    let alive = true;
+    setTrendingLoading(true);
+    searchMovies(TRENDING_QUERY)
+      .then((data) => alive && setTrending(data))
+      .catch(() => { /* ignore */ })
+      .finally(() => alive && setTrendingLoading(false));
+    return () => { alive = false; };
   }, []);
 
-  // Load recommended movies (only those with posters)
+  // Curated recommendations — a random pick per query so the shelf rotates
   const loadRecommended = async () => {
-    const withPosters = [];
-    for (const q of RECOMMENDED_QUERIES) {
-      if (withPosters.length >= 6) break;
+    const picked = [];
+    const NOISY = /awards|mtv|festival|ceremony|trailer|special|behind the scenes|making of/i;
+    for (const q of shuffle(RECOMMENDED_QUERIES)) {
+      if (picked.length >= 5) break;
       try {
         const data = await searchMovies(q);
-        const valid = data.filter((m) => m.Poster && m.Poster !== "N/A");
-        for (const v of valid) {
-          if (!withPosters.some((w) => w.imdbID === v.imdbID)) {
-            withPosters.push(v);
-            if (withPosters.length >= 6) break;
-          }
-        }
-      } catch { /* empty - skip failed queries */ }
+        const valid = data.filter(
+          (m) => m.Poster && m.Poster !== "N/A" && m.Type === "movie" && !NOISY.test(m.Title)
+        );
+        if (!valid.length) continue;
+        const choice = valid[Math.floor(Math.random() * valid.length)];
+        if (!picked.some((p) => p.imdbID === choice.imdbID)) picked.push(choice);
+      } catch { /* skip failed query */ }
     }
-    return withPosters.slice(0, 6);
+    return picked.slice(0, 5);
   };
 
   useEffect(() => {
-    if (!recLoaded) {
-      setRecLoaded(true);
-      loadRecommended().then((recs) => setRecommended(recs));
-    }
+    let alive = true;
+    loadRecommended().then((recs) => alive && setRecommended(recs));
+    return () => { alive = false; };
   }, []);
 
-  // Rotate recommended movies every 20s
+  // Refresh recommendations periodically
   useEffect(() => {
     const ri = setInterval(async () => {
-      const newRecs = await loadRecommended();
-      if (newRecs.length > 0) setRecommended(newRecs);
+      const recs = await loadRecommended();
+      if (recs.length > 0) setRecommended(recs);
     }, 20000);
     return () => clearInterval(ri);
   }, []);
 
   const handleSearch = async (searchTerm) => {
-    const term = searchTerm || query;
-    if (!term.trim()) return;
+    const term = (searchTerm ?? query).trim();
+    if (!term) return;
     setLoading(true);
     setError("");
     setHasSearched(true);
     setQuery(term);
     setTranslation(null);
+    setMovies([]);
+
     const t = await translateToEnglish(term);
     setTranslation(t);
-    const searchTermFinal = t.wasTranslated ? t.translated : term;
-    searchMovies(searchTermFinal)
-      .then((data) => setMovies(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    const finalTerm = t.wasTranslated ? t.translated : term;
+
+    try {
+      const data = await searchMovies(finalTerm);
+      setMovies(data);
+    } catch (err) {
+      const message = err?.message || "Something went wrong";
+      if (/not found/i.test(message)) setMovies([]);
+      else setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSuggestionClick = (term) => {
@@ -255,6 +276,18 @@ export default function MoviesGrid() {
     if (isFavorite(movie)) removeFromFavorites(movie.imdbID);
     else addToFavorites(movie);
   };
+
+  const resultsTitle = loading ? (
+    <>Searching the archives for <em>“{query}”</em></>
+  ) : error ? (
+    <>Search failed for <em>“{query}”</em></>
+  ) : movies.length === 0 ? (
+    <>Search <em>Results</em> <span className="section-title-sub">for “{query}”</span></>
+  ) : (
+    <>Found <em>{movies.length}</em> {movies.length === 1 ? "film" : "films"}{" "}
+      <span className="section-title-sub">for “{query}”</span>
+    </>
+  );
 
   return (
     <>
@@ -283,6 +316,7 @@ export default function MoviesGrid() {
           <RevealOnScroll y={30} delay={0.15}>
             <h1 className="hero-logo">
               <span className="accent">CINE</span>MART<span className="dot">.</span>
+              <span className="hero-caret" aria-hidden="true" />
             </h1>
           </RevealOnScroll>
 
@@ -295,7 +329,7 @@ export default function MoviesGrid() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {TAGLINES[taglineIndex]}
                 </motion.p>
@@ -304,31 +338,38 @@ export default function MoviesGrid() {
           </RevealOnScroll>
 
           <RevealOnScroll y={24} delay={0.45}>
-            <div className="hero-search">
+            <form
+              className="hero-search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSearch();
+              }}
+            >
               <Search className="w-5 h-5 search-icon" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="Search for a movie, genre, or year..."
+                placeholder="Search a movie, genre, or year…"
+                aria-label="Search movies"
               />
-              <button onClick={() => handleSearch()} className="search-submit">
+              <button type="submit" className="search-submit pixel-btn">
                 Search
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
-            </div>
+            </form>
 
             <div className="hero-suggestions">
               <span className="label">Quick Search</span>
               {SUGGESTIONS.map((term) => (
                 <button
                   key={term}
-                  className="suggestion-chip"
+                  type="button"
+                  className="suggestion-chip pixel-tag"
                   onClick={() => handleSuggestionClick(term)}
                 >
-                  <span>{term}</span>
+                  {term}
                 </button>
               ))}
             </div>
@@ -341,171 +382,140 @@ export default function MoviesGrid() {
         </div>
       </section>
 
-      {/* RECOMMENDED SECTION */}
-      {recommended.length > 0 && (
-        <section className="section">
-          <RevealOnScroll y={24}>
-            <div className="section-head">
-              <div>
-                <span className="eyebrow-accent" style={{ marginBottom: 8, display: "block" }}>
-                  <Sparkles className="w-3.5 h-3.5" style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
-                  Curated Picks
-                </span>
-                <h2 className="section-title">
-                  Recommended <em>for You</em>
-                </h2>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--cream-3)" }}>
-                <Clock className="w-3.5 h-3.5" />
-                Updates every 20s
-              </div>
-            </div>
-          </RevealOnScroll>
+      {hasSearched ? (
+        <>
+          {/* SEARCH RESULTS */}
+          <section className="section" id="results">
+            <RevealOnScroll y={24}>
+              <SectionHead
+                eyebrow={
+                  <>
+                    <Search className="w-3.5 h-3.5" /> Search Results
+                  </>
+                }
+                title={resultsTitle}
+                meta={
+                  !loading && !error && movies.length > 0 ? (
+                    <>
+                      <span className="pip" />
+                      Index · {String(movies.length).padStart(3, "0")}
+                    </>
+                  ) : null
+                }
+              />
+            </RevealOnScroll>
 
-          <motion.div className="recommended-grid" layout>
-            <AnimatePresence mode="popLayout">
-              {recommended.map((movie, index) => (
-                <MovieCard
-                  key={movie.imdbID}
-                  movie={movie}
-                  index={index}
-                  isFavorite={isFavorite(movie)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        </section>
+            {translation?.wasTranslated && (
+              <div className="translation-banner">
+                <Languages className="w-3.5 h-3.5" />
+                <span className="tb-label">Translated from {getLangLabel(translation.sourceLang)}</span>
+                <span className="tb-arrow">
+                  <span className="tb-original">“{translation.original}”</span>
+                  <ArrowRight className="w-3 h-3 tb-arrow-icon" />
+                  <span className="tb-translated">“{translation.translated}”</span>
+                </span>
+              </div>
+            )}
+
+            {loading && <SkeletonGrid count={8} />}
+
+            {!loading && error && (
+              <div className="error-state">
+                <Film className="w-8 h-8" />
+                <p>{error}</p>
+                <button type="button" className="pixel-btn" onClick={() => handleSearch()}>
+                  Try Again
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && movies.length === 0 && (
+              <div className="empty-state">
+                <Search className="w-10 h-10" />
+                <p>No films found for “{query}”</p>
+                <p className="sub">Try a different title, genre, or year</p>
+              </div>
+            )}
+
+            {!loading && !error && movies.length > 0 && (
+              <MovieGrid items={movies} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />
+            )}
+          </section>
+
+          {recommended.length > 0 && (
+            <section className="section">
+              <SectionHead
+                eyebrow={
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" /> Curated Picks
+                  </>
+                }
+                title={<>Recommended <em>for You</em></>}
+                meta={
+                  <>
+                    <Clock className="w-3.5 h-3.5" /> Updates every 20s
+                  </>
+                }
+              />
+              <MovieGrid items={recommended} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />
+            </section>
+          )}
+        </>
+      ) : (
+        <>
+          {recommended.length > 0 && (
+            <section className="section">
+              <SectionHead
+                eyebrow={
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" /> Curated Picks
+                  </>
+                }
+                title={<>Recommended <em>for You</em></>}
+                meta={
+                  <>
+                    <Clock className="w-3.5 h-3.5" /> Updates every 20s
+                  </>
+                }
+              />
+              <MovieGrid items={recommended} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />
+            </section>
+          )}
+
+          {(trendingLoading || trending.length > 0) && (
+            <section className="section">
+              <SectionHead
+                eyebrow={
+                  <>
+                    <Film className="w-3.5 h-3.5" /> Now Showing
+                  </>
+                }
+                title={<>Trending in <em>2025</em></>}
+                meta={
+                  !trendingLoading && trending.length > 0 ? (
+                    <>
+                      <span className="pip" />
+                      Fresh picks · {String(trending.length).padStart(3, "0")}
+                    </>
+                  ) : null
+                }
+              />
+              {trendingLoading ? (
+                <SkeletonGrid count={9} />
+              ) : (
+                <MovieGrid items={trending} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />
+              )}
+            </section>
+          )}
+        </>
       )}
 
-      {/* RESULTS */}
-      <section className="section" style={{ paddingTop: recommended.length > 0 ? 40 : 100 }}>
-        <AnimatePresence mode="wait">
-          {loading && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="loading-row">
-                <div className="spinner" />
-                <span>Searching the archives…</span>
-              </div>
-              <div className="results-grid">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="skeleton-card">
-                    <div className="skeleton-poster" />
-                    <div className="skeleton-text" />
-                    <div className="skeleton-text short" />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {error && !loading && (
-            <motion.div
-              key="error"
-              className="error-state"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Film className="w-8 h-8" />
-              <p>{error}</p>
-              <button onClick={() => handleSearch()}>Try Again</button>
-            </motion.div>
-          )}
-
-          {!loading && !error && hasSearched && movies.length === 0 && (
-            <motion.div
-              key="empty"
-              className="empty-state"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Search className="w-10 h-10" />
-              <p>No films found for "{query}"</p>
-              <p className="sub">Try a different search term</p>
-            </motion.div>
-          )}
-
-          {!loading && movies.length > 0 && (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {translation && translation.wasTranslated && (
-                <div className="translation-banner">
-                  <Languages className="w-3.5 h-3.5" />
-                  <span className="tb-label">Translated from {getLangLabel(translation.sourceLang)}</span>
-                  <span className="tb-arrow">
-                    <span className="tb-original">"{translation.original}"</span>
-                    <ArrowRight className="w-3 h-3 tb-arrow-icon" />
-                    <span className="tb-translated">"{translation.translated}"</span>
-                  </span>
-                </div>
-              )}
-
-              <RevealOnScroll y={20}>
-                <div className="section-head">
-                  <div>
-                    <span className="eyebrow-accent" style={{ marginBottom: 8, display: "block" }}>Search Results</span>
-                    <h2 className="section-title">
-                      Found <em>{movies.length}</em> {movies.length === 1 ? "film" : "films"}
-                      <span style={{ color: "var(--cream-3)", fontWeight: 300 }}> for "{query}"</span>
-                    </h2>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--cream-3)" }}>
-                    <span style={{ width: 6, height: 6, background: "var(--accent)", borderRadius: "50%" }} />
-                    Index · {String(movies.length).padStart(3, "0")}
-                  </div>
-                </div>
-              </RevealOnScroll>
-
-              <motion.div className="results-grid" layout>
-                <AnimatePresence mode="popLayout">
-                  {movies.map((movie, index) => (
-                    <MovieCard
-                      key={movie.imdbID}
-                      movie={movie}
-                      index={index}
-                      isFavorite={isFavorite(movie)}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-
       {/* FOOTER */}
-      <footer style={{
-        padding: "60px 40px",
-        borderTop: "1px solid var(--border)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 16,
-        background: "var(--ink-2)",
-      }}>
-        <span className="eyebrow" style={{ color: "var(--cream-3)" }}>
-          <span style={{ color: "var(--accent)" }}>©</span> MMXXVI · CINEMART
+      <footer className="site-footer">
+        <span className="eyebrow">
+          <span className="accent">©</span> MMXXVI · CINEMART
         </span>
-        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--cream-3)", fontSize: 18 }}>
-          End of Reel
-        </span>
+        <span className="site-footer-mark">End of Reel</span>
       </footer>
     </>
   );
