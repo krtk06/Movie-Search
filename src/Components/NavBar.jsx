@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, ArrowUpRight, Film, Heart, Info } from "lucide-react";
+import { Menu, X, ArrowUpRight, Film, Heart, Info } from "./PixelIcon";
 import { useAuth } from "../Context/AuthContext";
 import MagneticButton from "./MagneticButton";
 

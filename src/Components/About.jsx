@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { motion } from "motion/react"; // eslint-disable-line no-unused-vars
 import NavBar from "./NavBar.jsx";
-import { Clapperboard, Heart, Search, ArrowUpRight, Sparkles } from "lucide-react";
+import { Clapperboard, Heart, Search, ArrowUpRight, Sparkles } from "./PixelIcon";
 import { Link } from "react-router-dom";
 import RevealOnScroll from "./RevealOnScroll";
 import Marquee from "./Marquee";

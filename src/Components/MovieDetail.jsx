@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "motion/react"; // eslint-disable-line no-unused-vars
 import { getMovieById, getPosterUrl, POSTER_PLACEHOLDER } from "../API/omdb.js";
-import { ArrowLeft, Star, Clock, Calendar, User, Award, Film } from "lucide-react";
+import { ArrowLeft, Star, Clock, Calendar, User, Award, Film } from "./PixelIcon";
 import {
   getStreamingProviders,
   ALL_PLATFORM_KEYS,

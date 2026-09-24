@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { motion, AnimatePresence } from "motion/react"; // eslint-disable-line no-unused-vars
-import { Eye, EyeOff, AlertCircle, ArrowUpRight } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, ArrowUpRight } from "./PixelIcon";
 import RevealOnScroll from "./RevealOnScroll";
 import MagneticButton from "./MagneticButton";
 

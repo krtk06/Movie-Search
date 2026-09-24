@@ -6,7 +6,7 @@ import { translateToEnglish, getLangLabel } from "./API/translate.js";
 import NavBar from "./Components/NavBar.jsx";
 import RevealOnScroll from "./Components/RevealOnScroll";
 import TiltCard from "./Components/TiltCard";
-import { Heart, Film, Search, Star, ArrowRight, Languages, Clock, Sparkles } from "lucide-react";
+import { Heart, Film, Search, Star, ArrowRight, Languages, Clock, Sparkles } from "./Components/PixelIcon";
 import { useFavorites } from "./Components/FavText.jsx";
 
 const SUGGESTIONS = ["2025", "Action", "Drama", "Sci-Fi", "Thriller", "Animation", "Horror", "Comedy"];

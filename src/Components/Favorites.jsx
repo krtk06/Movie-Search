@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react"; // eslint-disable-line no-unused-vars
 import { useFavorites } from "./FavText.jsx";
 import NavBar from "./NavBar.jsx";
-import { Heart, Film, ArrowLeft, Star, ArrowUpRight } from "lucide-react";
+import { Heart, Film, ArrowLeft, Star, ArrowUpRight } from "./PixelIcon";
 import { getMovieById, getPosterUrl, POSTER_PLACEHOLDER } from "../API/omdb.js";
 import RevealOnScroll from "./RevealOnScroll";
 import TiltCard from "./TiltCard";
