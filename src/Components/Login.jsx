@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const { login, signup, isDemo } = useAuth();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -53,7 +53,7 @@ export default function Login() {
         </div>
 
         <div className="login-side-quote">
-          <p>"Movies are the closest thing we have to time travel."</p>
+          <p>“Movies are the closest thing we have to time travel.”</p>
           <span>Welcome to the Collection</span>
         </div>
 
@@ -62,7 +62,9 @@ export default function Login() {
             <span className="dot" />
             <span>MMXXVI · Vol. 1</span>
           </span>
-          <span>Now playing: <em>You, entering</em></span>
+          <span>
+            Now playing: <em>You, entering</em>
+          </span>
         </div>
       </div>
 
@@ -71,31 +73,44 @@ export default function Login() {
           className="login-container"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
         >
-          <RevealOnScroll y={20} delay={0.1}>
-            <div className="login-title-block">
-              <div className="eyebrow">{isSignup ? "Create Account" : "Welcome Back"}</div>
-              <h2>
-                {isSignup ? "Join the " : "Step back "}
-                <span className="accent">{isSignup ? "Cinema" : "in"}</span>.
-              </h2>
-              <p>
-                {isSignup
-                  ? "Build a personal collection. Track films. Return to scenes."
-                  : "Continue your journey. Your collection is waiting."}
-              </p>
+          <div className="login-title-block">
+            <div className="eyebrow">{isSignup ? "Create Account" : "Welcome Back"}</div>
+            <h2>
+              {isSignup ? (
+                <>
+                  Join the <span className="accent">Cinema</span>.
+                </>
+              ) : (
+                <>
+                  Step back <span className="accent">in</span>.
+                </>
+              )}
+            </h2>
+            <p>
+              {isSignup
+                ? "Build a personal collection. Track films. Return to scenes."
+                : "Continue your journey. Your collection is waiting."}
+            </p>
+          </div>
+
+          {isDemo && (
+            <div className="login-demo-note">
+              <AlertCircle className="w-3.5 h-3.5" style={{ flexShrink: 0 }} />
+              <span>Demo mode — accounts live in this browser until Firebase keys are configured.</span>
             </div>
-          </RevealOnScroll>
+          )}
 
           <AnimatePresence>
             {error && (
               <motion.div
                 className="login-error"
+                role="alert"
                 initial={{ opacity: 0, y: -10, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: "auto" }}
                 exit={{ opacity: 0, y: -10, height: 0 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               >
                 <AlertCircle className="w-3.5 h-3.5" style={{ flexShrink: 0 }} />
                 <span>{error}</span>
@@ -103,12 +118,15 @@ export default function Login() {
             )}
           </AnimatePresence>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <RevealOnScroll y={16} delay={0.2}>
               <div className="field">
-                <label>Email Address</label>
+                <label htmlFor="login-email">Email Address</label>
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="you@cinema.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -120,9 +138,12 @@ export default function Login() {
 
             <RevealOnScroll y={16} delay={0.3}>
               <div className="field password-field">
-                <label>Password</label>
+                <label htmlFor="login-password">Password</label>
                 <input
+                  id="login-password"
+                  name="password"
                   type={showPw ? "text" : "password"}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -133,7 +154,7 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPw(!showPw)}
                   className="pw-toggle"
-                  aria-label="Toggle password visibility"
+                  aria-label={showPw ? "Hide password" : "Show password"}
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -148,7 +169,7 @@ export default function Login() {
                 className="btn-primary"
                 disabled={loading}
               >
-                <span>{loading ? "..." : isSignup ? "Create Account" : "Enter"}</span>
+                <span>{loading ? "…" : isSignup ? "Create Account" : "Enter"}</span>
                 <ArrowUpRight className="w-4 h-4" />
               </MagneticButton>
             </RevealOnScroll>
@@ -158,6 +179,7 @@ export default function Login() {
             <p className="login-toggle">
               {isSignup ? "Already a member?" : "Not yet a member?"}
               <button
+                type="button"
                 onClick={() => {
                   setIsSignup(!isSignup);
                   setError("");
