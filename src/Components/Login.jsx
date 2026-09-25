@@ -98,7 +98,7 @@ export default function Login() {
           {isDemo && (
             <div className="login-demo-note">
               <AlertCircle className="w-3.5 h-3.5" style={{ flexShrink: 0 }} />
-              <span>Demo mode — accounts live in this browser until Firebase keys are configured.</span>
+              <span>Demo mode — accounts live in this browser until the auth Worker is connected.</span>
             </div>
           )}
 

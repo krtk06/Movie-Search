@@ -32,3 +32,8 @@ logs/
 
 # OpenCode local config
 .opencode/
+
+# Cloudflare Workers local state & secrets
+.wrangler/
+.dev.vars
+.dev.vars.*

@@ -1,0 +1,21 @@
+{
+  "name": "cinemart-auth",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CINEMART email/password auth API on Cloudflare Workers + D1",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "db:migrate:local": "wrangler d1 migrations apply cinemart-auth-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply cinemart-auth-db --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.2.7",
+    "@vitest/runner": "4.1.11",
+    "@vitest/snapshot": "4.1.11",
+    "vitest": "4.1.11",
+    "wrangler": "^4.0.0"
+  }
+}

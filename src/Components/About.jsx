@@ -36,7 +36,7 @@ const FEATURES = [
   },
 ];
 
-const TECH = ["React 19", "Vite", "Tailwind v4", "Motion", "OMDb API", "TMDB API", "Firebase Auth"];
+const TECH = ["React 19", "Vite", "Tailwind v4", "Motion", "OMDb API", "TMDB API", "Cloudflare Workers", "D1"];
 
 export default function About() {
   useEffect(() => {

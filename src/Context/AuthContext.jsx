@@ -1,16 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
-import { getFirebaseAuth, isFirebaseConfigured } from "../lib/firebase";
+  cloudflareLogin,
+  cloudflareLogout,
+  cloudflareMe,
+  cloudflareSignup,
+  isCloudflareConfigured,
+} from "../lib/cloudflare-auth";
 
 const AuthContext = createContext(null);
-
 const USERS_KEY = "cinephile_users";
-const SESSION_KEY = "cinephile_session";
+const DEMO_SESSION_KEY = "cinephile_session";
 
 function getUsers() {
   try {
@@ -24,150 +23,119 @@ function saveUsers(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-/* Cheap demo-mode credential obfuscation (not real security). */
-function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) - h) + str.charCodeAt(i);
-    h |= 0;
+function hash(value) {
+  let result = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    result = (result << 5) - result + value.charCodeAt(index);
+    result |= 0;
   }
-  return h.toString(36);
+  return result.toString(36);
 }
 
-const FIREBASE_ERRORS = {
-  "auth/email-already-in-use": "An account with this email already exists",
-  "auth/invalid-email": "Please enter a valid email address",
-  "auth/weak-password": "Password should be at least 6 characters",
-  "auth/user-not-found": "No account found with that email",
-  "auth/wrong-password": "Incorrect email or password",
-  "auth/invalid-credential": "Incorrect email or password",
-  "auth/too-many-requests": "Too many attempts — try again shortly",
-  "auth/network-request-failed": "Network error — check your connection",
-};
+function getDemoUser() {
+  try {
+    const email = localStorage.getItem(DEMO_SESSION_KEY);
+    const users = getUsers();
+    return email && users[email] ? { uid: email, email } : null;
+  } catch {
+    return null;
+  }
+}
 
-function firebaseMessage(err) {
-  const code = err?.code || "";
-  if (FIREBASE_ERRORS[code]) return FIREBASE_ERRORS[code];
-  return (
-    err?.message?.replace(/^Firebase:\s*/, "").replace(/\s*\(auth\/[\w-]+\)\.?/, "") ||
-    "Authentication failed"
-  );
+function normalizeUser(user) {
+  return { uid: user.id, email: user.email };
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }
 
 export function AuthProvider({ children }) {
-  // Demo mode: restore the local session synchronously so the first render
-  // (and ProtectedRoute) already sees the correct user. Firebase mode must
-  // stay async (onAuthStateChanged) and therefore starts in `loading`.
-  const [user, setUser] = useState(() => {
-    if (isFirebaseConfigured) return null;
-    try {
-      const savedEmail = localStorage.getItem(SESSION_KEY);
-      const users = getUsers();
-      return savedEmail && users[savedEmail]
-        ? { uid: savedEmail, email: savedEmail }
-        : null;
-    } catch {
-      return null;
-    }
-  });
-  const [loading, setLoading] = useState(isFirebaseConfigured);
-  const isDemo = !isFirebaseConfigured;
+  const isDemo = !isCloudflareConfigured;
+  const [user, setUser] = useState(() => (isDemo ? getDemoUser() : null));
+  const [loading, setLoading] = useState(!isDemo);
 
   useEffect(() => {
-    if (isFirebaseConfigured) {
-      const auth = getFirebaseAuth();
-      if (!auth) {
-        setLoading(false);
-        return;
-      }
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        (fbUser) => {
-          setUser(fbUser ? { uid: fbUser.uid, email: fbUser.email } : null);
-          setLoading(false);
-        },
-        () => setLoading(false)
-      );
-      return unsubscribe;
+    let active = true;
+
+    if (isDemo) {
+      setLoading(false);
+    } else {
+      cloudflareMe()
+        .then((remoteUser) => {
+          if (!active) return;
+          setUser(remoteUser ? normalizeUser(remoteUser) : null);
+        })
+        .catch(() => {
+          if (!active) return;
+          setUser(null);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     }
 
-    // Demo mode: restore a local session.
-    const savedEmail = localStorage.getItem(SESSION_KEY);
-    if (savedEmail) {
-      const users = getUsers();
-      if (users[savedEmail]) {
-        setUser({ uid: savedEmail, email: savedEmail });
-      } else {
-        localStorage.removeItem(SESSION_KEY);
-      }
-    }
-    setLoading(false);
+    return () => {
+      active = false;
+    };
   }, [isDemo]);
 
   const login = async (email, password) => {
-    const address = email.toLowerCase();
-    if (isFirebaseConfigured) {
-      const auth = getFirebaseAuth();
-      if (!auth) throw new Error("Authentication is not configured");
-      try {
-        await signInWithEmailAndPassword(auth, address, password);
-      } catch (err) {
-        throw new Error(firebaseMessage(err));
-      }
+    const address = email.trim().toLowerCase();
+
+    if (!isDemo) {
+      const remoteUser = await cloudflareLogin(address, password);
+      setUser(normalizeUser(remoteUser));
       return;
     }
+
     const users = getUsers();
     const stored = users[address];
     if (!stored || stored.password !== hash(password)) {
       throw new Error("Invalid email or password");
     }
-    localStorage.setItem(SESSION_KEY, address);
+    localStorage.setItem(DEMO_SESSION_KEY, address);
     setUser({ uid: address, email: address });
   };
 
   const signup = async (email, password) => {
-    const address = email.toLowerCase();
-    if (isFirebaseConfigured) {
-      const auth = getFirebaseAuth();
-      if (!auth) throw new Error("Authentication is not configured");
-      try {
-        await createUserWithEmailAndPassword(auth, address, password);
-      } catch (err) {
-        throw new Error(firebaseMessage(err));
-      }
+    const address = email.trim().toLowerCase();
+
+    if (!isDemo) {
+      const remoteUser = await cloudflareSignup(address, password);
+      setUser(normalizeUser(remoteUser));
       return;
     }
+
     const users = getUsers();
     if (users[address]) {
       throw new Error("An account with this email already exists");
     }
     users[address] = { password: hash(password), createdAt: Date.now() };
     saveUsers(users);
-    localStorage.setItem(SESSION_KEY, address);
+    localStorage.setItem(DEMO_SESSION_KEY, address);
     setUser({ uid: address, email: address });
   };
 
   const logout = async () => {
-    if (isFirebaseConfigured) {
-      const auth = getFirebaseAuth();
-      if (auth) await signOut(auth);
+    if (!isDemo) {
+      try {
+        await cloudflareLogout();
+      } finally {
+        setUser(null);
+      }
       return;
     }
-    localStorage.removeItem(SESSION_KEY);
+
+    localStorage.removeItem(DEMO_SESSION_KEY);
     setUser(null);
   };
 
   const value = { user, loading, login, signup, logout, isDemo };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>
   );
 }

@@ -20,14 +20,14 @@ preserving all functionality, then cleans up accumulated tech debt.
 - Full pixel-art visual system across all routes (Home, Movie Detail, Collection, About, Login, + new 404).
 - Real dark **and** light pixel themes with a working toggle.
 - Hand-rolled pixel icon set (no smooth line icons).
-- Real Firebase Auth (email/password) with a local demo fallback.
+- Real Cloudflare Workers Auth (email/password, Worker + D1) with a local demo fallback.
 - Fix functional/visual bugs found in browser QA.
 - Remove dead code, unused deps/assets, and fix env/API-key handling.
 
 **Non-goals**
 - No framework or styling-library migration (stay React + Tailwind v4 + `App.css`).
 - No Firestore / no server-side favorites (favorites stay in localStorage).
-- No new runtime dependencies beyond what is already installed (`firebase` is already present).
+- No new frontend runtime dependencies (auth uses the platform `fetch`; `firebase` removed in Phase 12).
 
 ## 3. Decisions Log
 
@@ -43,8 +43,8 @@ preserving all functionality, then cleans up accumulated tech debt.
 | D8 | Icons | Hand-rolled pixel SVG set; remove `lucide-react` |
 | D9 | Styling | Keep `App.css` class system + Tailwind v4 utilities; move inline styles into CSS |
 | D10 | Motion | Snappy, stepped (`steps()`) animations; no soft eases/blur |
-| D11 | Auth | **Firebase Auth** (email/password) with localStorage **demo fallback** when unconfigured |
-| D12 | Firebase config | `.env.example` template; real values supplied by the user in gitignored `.env` |
+| D11 | Auth | **Cloudflare Workers + D1** (email/password, see Phase 12) with localStorage **demo fallback** when unconfigured |
+| D12 | Auth config | `.env.example` documents `VITE_AUTH_API_URL`; Worker config (`auth-worker/wrangler.jsonc`) holds `ALLOWED_ORIGIN` |
 | D13 | Favorites | Stay in localStorage (per-account sync out of scope) |
 | D14 | Font delivery | Google Fonts CDN |
 | D15 | Bug handling | Fix functional bugs found in QA on this branch, in addition to the redesign |
@@ -158,7 +158,9 @@ preserving all functionality, then cleans up accumulated tech debt.
   Tailwind v4, OMDb API, TMDB, Motion, Firebase Auth.
 **Acceptance:** accurate content, on-theme.
 
-### Phase 8 — Firebase Auth + Demo Fallback + Login
+### Phase 8 — Cloudflare Workers Auth + Demo Fallback + Login
+*(Superseded in Phase 12 — this phase originally introduced Firebase; auth now runs on a
+Cloudflare Worker + D1. See Phase 12 for the shipped design.)*
 **Files:** add `src/lib/firebase.js`; `src/Context/AuthContext.jsx`, `src/Components/Login.jsx`,
 `.env.example`.
 - `firebase.js`: initialize from `import.meta.env.VITE_FIREBASE_{API_KEY,AUTH_DOMAIN,PROJECT_ID,
@@ -182,8 +184,8 @@ preserving all functionality, then cleans up accumulated tech debt.
 **Files:** `package.json`, `.env.example`, `API/omdb.js`, `API/tmdb.jsx`; delete dead files.
 - `omdb.js`: read `import.meta.env.VITE_OMDB_API_KEY` (env-first).
 - `tmdb.jsx`: remove hardcoded fallback → env-only (graceful null already handled).
-- `.env.example`: document both `VITE_OMDB_API_KEY` and `VITE_TMDB_API_KEY` (+ Firebase vars).
-- Remove deps `simple-icons`, `tailwindcss-motion`, `lucide-react`; keep `firebase`; run `npm install`.
+- `.env.example`: document both `VITE_OMDB_API_KEY` and `VITE_TMDB_API_KEY` (+ `VITE_AUTH_API_URL`).
+- Remove deps `simple-icons`, `tailwindcss-motion`, `lucide-react`; run `npm install`.
 - Delete `CustomCursor.jsx`, `Mannequin.jsx`, `sunday-walks/`, `the-japan/`, `public/fonts/`,
   `Background/`.
 - Replace remaining `100vh` → `100dvh`.
@@ -193,6 +195,38 @@ preserving all functionality, then cleans up accumulated tech debt.
 - Re-run full `agent-browser` QA in **both themes** (desktop + mobile viewports).
 - `npm run lint` + `npm run build`.
 - Commit per-phase on `ft/redesign`; push only on explicit request.
+
+### Phase 12 — Cloudflare Workers Auth (replaces Firebase)
+**Decision:** user rejected Firebase; auth now runs on a Cloudflare Worker + D1, deployed from
+`auth-worker/`. Frontend reads `VITE_AUTH_API_URL`; when unset it falls back to the local demo mode.
+
+**Files:** add `auth-worker/` (Worker + D1 migration + Vitest suite), `src/lib/cloudflare-auth.js`,
+`src/lib/cloudflare-auth.test.js`, `src/Context/AuthContext.test.js`, `vitest.config.js`; modify
+`src/Context/AuthContext.jsx`, `src/Components/Login.jsx`, `src/Components/About.jsx`, `.env.example`,
+`vite.config.js`, `package.json`, `.gitignore`; delete `src/lib/firebase.js`.
+
+- **Worker API** (`auth-worker/src/index.js`): `GET /api/health`, `POST /api/auth/{signup,login,logout}`,
+  `GET /api/auth/me`. PBKDF2-SHA256 password hashing (600k iterations, per-user salt); opaque
+  32-byte session tokens stored in D1 as SHA-256 hashes (raw token never persisted).
+- **Security:** exact-origin CORS allow-list (mismatched `Origin` → 403), `Cache-Control: no-store`,
+  security headers, bounded request-body reader (rejects >8 KB even without `Content-Length`),
+  generic login errors, per-email failed-login throttle (5/min) and per-IP signup throttle (3/min)
+  via Cloudflare Rate Limiting bindings, constant-time hash comparison.
+- **Frontend client** (`src/lib/cloudflare-auth.js`): `Authorization: Bearer` session stored in
+  `localStorage` under `cinephile_cloudflare_session` (separate from demo key `cinephile_session`);
+  validates Worker responses; clears the token only on `401` (preserves it on transient network/5xx).
+- **AuthContext:** identical public API (`user, loading, login, signup, logout, isDemo`); Cloudflare
+  path restores the session via `/me` on mount, demo path restores synchronously.
+- **Vite watcher fix:** `vite.config.js` ignores `**/auth-worker/**` so the Worker's local
+  `.wrangler` SQLite writes don't trigger full-page HMR reloads during auth flows.
+- **Dependency hygiene:** removed `firebase`; upgraded `react-router-dom` → 7.18.4 and `vite` →
+  6.4.3 for security advisories; added `overrides` to force patched transitive versions
+  (`npm audit` → 0 vulnerabilities). JS bundle shrank ~573 kB → ~413 kB.
+- **Tests:** 9 Worker tests (`@cloudflare/vitest-plugin`, real D1 + rate-limit bindings) and 9
+  frontend tests (jsdom, `cloudflare-auth` + `AuthContext`).
+**Acceptance:** `npm test` (both suites) green; `npm run lint` 0 errors; `npm run build` clean;
+`npm audit` 0 vulnerabilities; browser QA of signup → protected route → logout → login with the
+local Worker. **Deploy:** see `auth-worker/README.md` (requires `wrangler login` + a Cloudflare account).
 
 ### 6.1 Phase 0 Bug Log
 
@@ -215,17 +249,20 @@ protected route → logout, About, marquee. No horizontal overflow at 390px.
 | 11 | Home | mobile | `.results-grid` `1fr` tracks blow out from pixel-font `min-content` → ~4px horizontal overflow at 390px | Low | Layout | Phase 4 | Fixed (Phase 4) |
 | 12 | Auth | `/favorites` direct load | Demo session restored in `useEffect` after first render, but `ProtectedRoute` redirected on first render → logged-in users bounced to `/login` on refresh/deep-link | High | Functional | Phase 11 | Fixed (Phase 11) |
 | 13 | A11y | skip-link | Skip target `<main>` not focusable → keyboard activation scrolled but didn't move focus | Low | A11y | Phase 11 | Fixed (Phase 11) |
+| 14 | Dev | local Worker + Vite | Worker `.wrangler` SQLite writes (D1, rate-limit, observability) sit inside the Vite watch root → every auth request triggered a full-page HMR reload, resetting the SPA mid-flow | High | Dev/Functional | Phase 12 | Fixed (Phase 12: `server.watch.ignored`) |
 
 ## 7. File Manifest
 
 **Create:** `src/Components/PixelIcon.jsx`, `src/Components/PixelFrame.jsx`,
-`src/Components/NotFound.jsx`, `src/lib/firebase.js`, `implementation.md`.
+`src/Components/NotFound.jsx`, `src/lib/cloudflare-auth.js`, `src/lib/cloudflare-auth.test.js`,
+`src/Context/AuthContext.test.js`, `vitest.config.js`, `auth-worker/` (Worker, D1 migration, tests,
+`wrangler.jsonc`), `implementation.md`.
 **Modify:** `index.html`, `src/App.css`, `src/App.jsx`, `src/main.jsx`, `src/MovieGrid.jsx`,
 `src/Components/{NavBar,MovieDetail,Favorites,About,Login,PlatformIcon,Marquee,ScrollProgress,
 TiltCard,MagneticButton,RevealOnScroll}.jsx`, `src/Context/{ThemeContext,AuthContext}.jsx`,
-`src/API/{omdb.js,tmdb.jsx}`, `package.json`, `.env.example`.
-**Delete:** `src/Components/CustomCursor.jsx`, `src/Components/Mannequin.jsx`, `sunday-walks/`,
-`the-japan/`, `public/fonts/`, `Background/`.
+`src/API/{omdb.js,tmdb.jsx}`, `package.json`, `vite.config.js`, `.env.example`, `.gitignore`.
+**Delete:** `src/lib/firebase.js`, `src/Components/CustomCursor.jsx`, `src/Components/Mannequin.jsx`,
+`sunday-walks/`, `the-japan/`, `public/fonts/`, `Background/`.
 
 ## 8. QA Protocol (agent-browser)
 
@@ -270,16 +307,17 @@ After each mutating action: `agent-browser console`, `agent-browser errors`,
 | Light theme contrast for posters/overlays | Re-tune overlay/scrim tokens per theme |
 | Missing an icon replacement | Phase 2 greps for `lucide-react`; lint catches undefined |
 | OMDb/TMDB rate limits during QA | Reuse one query; avoid loops |
-| Firebase keys absent during dev/QA | Demo fallback path keeps the app usable |
+| Auth Worker not deployed / `VITE_AUTH_API_URL` unset | Demo fallback path keeps the app usable without a backend |
 | Env change breaks running app | Keep graceful fallbacks; verify build |
 
 ## 10. Open Questions / Assumptions
 
-1. **Firebase credentials:** must be supplied by the user in `.env` before live Firebase auth can be
-   browser-tested; otherwise the demo fallback path is verified.
+1. **Auth deployment:** the Cloudflare Worker is verified locally (`wrangler dev` + local D1) but
+   requires `wrangler login` and a real Cloudflare account to deploy. Steps in `auth-worker/README.md`.
+   Until deployed, the frontend uses demo mode unless `VITE_AUTH_API_URL` is set.
 2. **Fonts:** Google Fonts CDN (no self-hosting).
 3. **Security:** the OMDb key (`4e2dfea1`) and TMDB fallback key are already in git history —
-   rotate them; they will be removed from source in Phase 10.
+   rotate them; they were removed from source in Phase 10.
 
 ## 11. Commit Strategy
 
