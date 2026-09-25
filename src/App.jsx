@@ -25,6 +25,7 @@ export default function App() {
       <AnimatePresence mode="wait">
         <motion.main
           id="main-content"
+          tabIndex={-1}
           key={location.pathname}
           className="page-wrap"
           initial={{ opacity: 0 }}

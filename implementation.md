@@ -213,6 +213,8 @@ protected route → logout, About, marquee. No horizontal overflow at 390px.
 | 9 | Theme | global | `ThemeContext` unused; no light mode reachable | Medium | Functional | Phase 1/3 | Fixed (Phase 3) |
 | 10 | A11y | global | No skip-to-content link | Low | A11y | Phase 9 | Fixed (Phase 9) |
 | 11 | Home | mobile | `.results-grid` `1fr` tracks blow out from pixel-font `min-content` → ~4px horizontal overflow at 390px | Low | Layout | Phase 4 | Fixed (Phase 4) |
+| 12 | Auth | `/favorites` direct load | Demo session restored in `useEffect` after first render, but `ProtectedRoute` redirected on first render → logged-in users bounced to `/login` on refresh/deep-link | High | Functional | Phase 11 | Fixed (Phase 11) |
+| 13 | A11y | skip-link | Skip target `<main>` not focusable → keyboard activation scrolled but didn't move focus | Low | A11y | Phase 11 | Fixed (Phase 11) |
 
 ## 7. File Manifest
 

@@ -2034,6 +2034,7 @@ html.light .login-video-overlay {
   transition: top var(--fast) var(--step-2);
 }
 .skip-link:focus { top: 16px; }
+#main-content:focus { outline: none; }
 
 .notfound {
   position: relative;
