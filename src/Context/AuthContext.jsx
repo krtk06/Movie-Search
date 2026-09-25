@@ -61,7 +61,21 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  // Demo mode: restore the local session synchronously so the first render
+  // (and ProtectedRoute) already sees the correct user. Firebase mode must
+  // stay async (onAuthStateChanged) and therefore starts in `loading`.
+  const [user, setUser] = useState(() => {
+    if (isFirebaseConfigured) return null;
+    try {
+      const savedEmail = localStorage.getItem(SESSION_KEY);
+      const users = getUsers();
+      return savedEmail && users[savedEmail]
+        ? { uid: savedEmail, email: savedEmail }
+        : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(isFirebaseConfigured);
   const isDemo = !isFirebaseConfigured;
 
