@@ -2,7 +2,11 @@ const MAX_BODY_BYTES = 8 * 1024;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOKEN_BYTES = 32;
 const SESSION_TTL_DAYS_DEFAULT = 30;
-const PBKDF2_ITERATIONS_DEFAULT = 600000;
+const PBKDF2_ITERATIONS_DEFAULT = 100000;
+const PBKDF2_ITERATIONS_MAX = 100000;
+const LOGIN_RATE_LIMIT_MAX = 5;
+const SIGNUP_RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 
 function b64encode(bytes) {
   let value = "";
@@ -39,9 +43,13 @@ async function constantTimeEqual(left, right) {
 
 function parseIterations(env) {
   const iterations = Number.parseInt(env.PBKDF2_ITERATIONS || "", 10);
-  return Number.isFinite(iterations) && iterations >= 1000
-    ? iterations
-    : PBKDF2_ITERATIONS_DEFAULT;
+  if (!Number.isFinite(iterations) || iterations < 1000) return PBKDF2_ITERATIONS_DEFAULT;
+  if (iterations > PBKDF2_ITERATIONS_MAX) {
+    throw new Error(
+      `PBKDF2_ITERATIONS ${iterations} exceeds the Cloudflare Workers maximum of ${PBKDF2_ITERATIONS_MAX}`
+    );
+  }
+  return iterations;
 }
 
 async function derivePassword(password, salt, iterations) {
@@ -221,12 +229,43 @@ async function deleteSession(env, token) {
     .run();
 }
 
+async function enforceRateLimit(env, key, limit, windowMs) {
+  const now = Date.now();
+  const windowStart = now - (now % windowMs);
+
+  const [counted] = await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO rate_limits (key, hits, window_start) VALUES (?, 1, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         hits = CASE
+           WHEN rate_limits.window_start = excluded.window_start
+             THEN rate_limits.hits + 1
+           ELSE 1
+         END,
+         window_start = excluded.window_start
+       RETURNING hits`
+    ).bind(key, windowStart),
+    env.DB.prepare(
+      `DELETE FROM rate_limits
+       WHERE window_start < ?
+         AND key IN (SELECT key FROM rate_limits WHERE window_start < ? LIMIT 200)`
+    ).bind(windowStart, windowStart),
+  ]);
+
+  const row = counted.results[0];
+  const hits = row ? Number(row.hits) : 1;
+  return hits <= limit;
+}
+
 async function handleSignup(request, env) {
   const client = request.headers.get("CF-Connecting-IP") || "unknown";
-  const { success } = await env.SIGNUP_RATE_LIMITER.limit({
-    key: await sha256Hex(`signup:${client}`),
-  });
-  if (!success) {
+  const allowed = await enforceRateLimit(
+    env,
+    await sha256Hex(`signup:${client}`),
+    SIGNUP_RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_MS
+  );
+  if (!allowed) {
     return errorResponse(
       request,
       env,
@@ -310,8 +349,13 @@ async function handleLogin(request, env) {
   const valid = await verifyPassword(password, passwordHash);
 
   if (!row || !valid) {
-    const { success } = await env.AUTH_RATE_LIMITER.limit({ key: `login:${email}` });
-    if (!success) {
+    const allowed = await enforceRateLimit(
+      env,
+      await sha256Hex(`login:${email}`),
+      LOGIN_RATE_LIMIT_MAX,
+      RATE_LIMIT_WINDOW_MS
+    );
+    if (!allowed) {
       return errorResponse(
         request,
         env,
@@ -360,16 +404,16 @@ export default {
         return json(request, env, { ok: true });
       }
       if (url.pathname === "/api/auth/signup" && request.method === "POST") {
-        return handleSignup(request, env);
+        return await handleSignup(request, env);
       }
       if (url.pathname === "/api/auth/login" && request.method === "POST") {
-        return handleLogin(request, env);
+        return await handleLogin(request, env);
       }
       if (url.pathname === "/api/auth/logout" && request.method === "POST") {
-        return handleLogout(request, env);
+        return await handleLogout(request, env);
       }
       if (url.pathname === "/api/auth/me" && request.method === "GET") {
-        return handleMe(request, env);
+        return await handleMe(request, env);
       }
 
       return errorResponse(request, env, "not_found", "Unknown endpoint.", 404);

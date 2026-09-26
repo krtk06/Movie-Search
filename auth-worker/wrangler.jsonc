@@ -16,31 +16,14 @@
   },
   "vars": {
     "ALLOWED_ORIGIN": "http://127.0.0.1:5174",
-    "PBKDF2_ITERATIONS": "600000",
+    "PBKDF2_ITERATIONS": "100000",
     "SESSION_TTL_DAYS": "30"
   },
-  "ratelimits": [
-    {
-      "name": "AUTH_RATE_LIMITER",
-      "namespace_id": "410726",
-      "simple": {
-        "limit": 5,
-        "period": 60
-      }
-    },
-    {
-      "name": "SIGNUP_RATE_LIMITER",
-      "namespace_id": "410727",
-      "simple": {
-        "limit": 3,
-        "period": 60
-      }
-    }
-  ],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "cinemart-auth-db",
+      "database_id": "6d560675-194d-4d60-9502-9b5ec725f4f2",
       "migrations_dir": "migrations"
     }
   ]

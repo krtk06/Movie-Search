@@ -206,12 +206,12 @@ Cloudflare Worker + D1. See Phase 12 for the shipped design.)*
 `vite.config.js`, `package.json`, `.gitignore`; delete `src/lib/firebase.js`.
 
 - **Worker API** (`auth-worker/src/index.js`): `GET /api/health`, `POST /api/auth/{signup,login,logout}`,
-  `GET /api/auth/me`. PBKDF2-SHA256 password hashing (600k iterations, per-user salt); opaque
+  `GET /api/auth/me`. PBKDF2-SHA256 password hashing (100k iterations, per-user salt); opaque
   32-byte session tokens stored in D1 as SHA-256 hashes (raw token never persisted).
 - **Security:** exact-origin CORS allow-list (mismatched `Origin` → 403), `Cache-Control: no-store`,
   security headers, bounded request-body reader (rejects >8 KB even without `Content-Length`),
-  generic login errors, per-email failed-login throttle (5/min) and per-IP signup throttle (3/min)
-  via Cloudflare Rate Limiting bindings, constant-time hash comparison.
+  generic login errors, constant-time hash comparison, and D1-backed rate limits
+  (5 failed logins/account/60s, 3 signups/client-IP/60s) via an atomic upsert + `RETURNING`.
 - **Frontend client** (`src/lib/cloudflare-auth.js`): `Authorization: Bearer` session stored in
   `localStorage` under `cinephile_cloudflare_session` (separate from demo key `cinephile_session`);
   validates Worker responses; clears the token only on `401` (preserves it on transient network/5xx).
@@ -222,11 +222,15 @@ Cloudflare Worker + D1. See Phase 12 for the shipped design.)*
 - **Dependency hygiene:** removed `firebase`; upgraded `react-router-dom` → 7.18.4 and `vite` →
   6.4.3 for security advisories; added `overrides` to force patched transitive versions
   (`npm audit` → 0 vulnerabilities). JS bundle shrank ~573 kB → ~413 kB.
-- **Tests:** 9 Worker tests (`@cloudflare/vitest-plugin`, real D1 + rate-limit bindings) and 9
+- **Tests:** 11 Worker tests (`@cloudflare/vitest-plugin`, real D1 + rate-limit tables) and 9
   frontend tests (jsdom, `cloudflare-auth` + `AuthContext`).
 **Acceptance:** `npm test` (both suites) green; `npm run lint` 0 errors; `npm run build` clean;
 `npm audit` 0 vulnerabilities; browser QA of signup → protected route → logout → login with the
-local Worker. **Deploy:** see `auth-worker/README.md` (requires `wrangler login` + a Cloudflare account).
+local Worker. **Deployed:** https://cinemart-auth.cinemart-auth.workers.dev (D1
+`cinemart-auth-db`, APAC). Production-verified: signup/login/me/logout, CORS 403 on wrong
+origin, brute force → 429 after 5 attempts, signup flood → 429 after 3, password stored as
+`pbkdf2-sha256$100000$…`. Remaining: set `ALLOWED_ORIGIN` to the deployed site origin and put the
+Worker URL in `VITE_AUTH_API_URL`.
 
 ### 6.1 Phase 0 Bug Log
 
@@ -250,6 +254,9 @@ protected route → logout, About, marquee. No horizontal overflow at 390px.
 | 12 | Auth | `/favorites` direct load | Demo session restored in `useEffect` after first render, but `ProtectedRoute` redirected on first render → logged-in users bounced to `/login` on refresh/deep-link | High | Functional | Phase 11 | Fixed (Phase 11) |
 | 13 | A11y | skip-link | Skip target `<main>` not focusable → keyboard activation scrolled but didn't move focus | Low | A11y | Phase 11 | Fixed (Phase 11) |
 | 14 | Dev | local Worker + Vite | Worker `.wrangler` SQLite writes (D1, rate-limit, observability) sit inside the Vite watch root → every auth request triggered a full-page HMR reload, resetting the SPA mid-flow | High | Dev/Functional | Phase 12 | Fixed (Phase 12: `server.watch.ignored`) |
+| 15 | Auth | deployed Worker | Route handlers were `return handleSignup(...)` without `await`, so the entrypoint `try/catch` could not catch handler rejections → raw Cloudflare error 1101 instead of structured JSON | Medium | Functional | Phase 12 | Fixed (Phase 12: `return await`) |
+| 16 | Auth | deployed Worker | `PBKDF2_ITERATIONS=600000` (OWASP guidance) is rejected by Workers Web Crypto, which hard-caps PBKDF2 at 100,000 iterations → error 1101 on every signup/login | High | Functional | Phase 12 | Fixed (Phase 12: 100k + startup guard) |
+| 17 | Auth | deployed Worker | Cloudflare Rate Limiting binding did not enforce across separate HTTP requests (10/10 bad logins passed) despite working within a single request → brute-force protection was a no-op | High | Security | Phase 12 | Fixed (Phase 12: D1-backed counters) |
 
 ## 7. File Manifest
 

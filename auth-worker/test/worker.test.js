@@ -12,8 +12,6 @@ async function invoke(request, overrides = {}) {
     ALLOWED_ORIGIN: env.ALLOWED_ORIGIN,
     PBKDF2_ITERATIONS: env.PBKDF2_ITERATIONS,
     SESSION_TTL_DAYS: env.SESSION_TTL_DAYS,
-    AUTH_RATE_LIMITER: env.AUTH_RATE_LIMITER,
-    SIGNUP_RATE_LIMITER: env.SIGNUP_RATE_LIMITER,
     ...overrides,
   };
   const response = await worker.fetch(request, workerEnv, context);
@@ -41,6 +39,7 @@ beforeEach(async () => {
   await env.DB.batch([
     env.DB.prepare("DELETE FROM sessions"),
     env.DB.prepare("DELETE FROM users"),
+    env.DB.prepare("DELETE FROM rate_limits"),
   ]);
 });
 
@@ -185,30 +184,70 @@ describe("CINEMART auth Worker", () => {
     expect(chunksRead).toBeLessThan(20);
   });
 
-  it("returns 429 when signup throttling rejects a request", async () => {
-    const response = await invoke(
-      jsonRequest("/api/auth/signup", {
-        email: "signup-throttled@example.com",
-        password: "secret123",
-      }),
-      { SIGNUP_RATE_LIMITER: { limit: async () => ({ success: false }) } }
-    );
+  it("blocks signup after 3 attempts from one client", async () => {
+    const responses = [];
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      responses.push(
+        await invoke(
+          jsonRequest(
+            "/api/auth/signup",
+            { email: `signup-limit-${attempt}@example.com`, password: "secret123" },
+            ORIGIN,
+            "203.0.113.10"
+          )
+        )
+      );
+    }
 
-    expect(response.status).toBe(429);
+    expect(responses.slice(0, 3).map((response) => response.status)).toEqual([201, 201, 201]);
+    expect(responses[3].status).toBe(429);
   });
 
-  it("returns 429 when failed-login throttling rejects a request", async () => {
-    const response = await invoke(
-      jsonRequest("/api/auth/login", {
-        email: "login-throttled@example.com",
-        password: "wrongpass",
-      }),
-      {
-        AUTH_RATE_LIMITER: { limit: async () => ({ success: false }) },
-        PBKDF2_ITERATIONS: "1000",
-      }
+  it("blocks login after 5 failed attempts for one account", async () => {
+    const responses = [];
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      responses.push(
+        await invoke(
+          jsonRequest("/api/auth/login", {
+            email: "brute-force@example.com",
+            password: "wrongpass",
+          })
+        )
+      );
+    }
+
+    expect(responses.slice(0, 5).map((response) => response.status)).toEqual([
+      401, 401, 401, 401, 401,
+    ]);
+    expect(responses[5].status).toBe(429);
+  });
+
+  it("keeps rate limits independent per account", async () => {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await invoke(
+        jsonRequest("/api/auth/login", { email: "locked@example.com", password: "wrongpass" })
+      );
+    }
+
+    const other = await invoke(
+      jsonRequest("/api/auth/login", { email: "untouched@example.com", password: "wrongpass" })
     );
 
-    expect(response.status).toBe(429);
+    expect(other.status).toBe(401);
+  });
+
+  it("rejects a PBKDF2 iteration count above the Workers maximum", async () => {
+    const response = await invoke(
+      jsonRequest("/api/auth/signup", {
+        email: "over-iterations@example.com",
+        password: "secret123",
+      }),
+      { PBKDF2_ITERATIONS: "600000" }
+    );
+
+    expect(response.status).toBe(500);
+    expect(await responseJson(response)).toMatchObject({
+      error: { code: "internal" },
+    });
   });
 });
