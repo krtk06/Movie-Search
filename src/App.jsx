@@ -9,6 +9,7 @@ import MovieDetail from "./Components/MovieDetail";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ScrollProgress from "./Components/ScrollProgress";
 import NotFound from "./Components/NotFound";
+import DitherField from "./Components/DitherField";
 
 export default function App() {
   const location = useLocation();
@@ -18,9 +19,9 @@ export default function App() {
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
+      <DitherField />
       <ScrollProgress />
       <div className="fx-scanlines" />
-      <div className="fx-dither" />
 
       <AnimatePresence mode="wait">
         <motion.main

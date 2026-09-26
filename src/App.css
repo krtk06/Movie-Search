@@ -54,6 +54,13 @@
   --text: var(--cream);
   --text-muted: var(--cream-3);
 
+  /* ─── Dither field (ordered-dither projector light) ─── */
+  --dither-1: #12101c;
+  --dither-2: #191531;
+  --dither-3: #211b45;
+  --dither-4: #2a2258;
+  --dither-5: #34296b;
+
   /* ─── z-index scale ─── */
   --z-menu: 95;
   --z-nav: 100;
@@ -108,6 +115,12 @@ html.light {
   --border-2: rgba(32, 26, 46, 0.28);
   --border-strong: rgba(32, 26, 46, 0.45);
   --line: #201a2e;
+
+  --dither-1: #f4ead8;
+  --dither-2: #ecdfc6;
+  --dither-3: #e3d4b4;
+  --dither-4: #dac8a2;
+  --dither-5: #cfba8f;
 }
 
 *,
@@ -173,15 +186,15 @@ canvas {
 }
 html.light .fx-scanlines { opacity: 0.1; }
 
-/* ─── Dither / grain overlay ─── */
-.fx-dither {
+/* ─── Dither field: ordered-dither projector light ─── */
+.dither-field {
   position: fixed;
   inset: 0;
-  z-index: calc(var(--z-fx) - 1);
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   pointer-events: none;
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  image-rendering: pixelated;
 }
 
 /* ─── Animations ─── */
