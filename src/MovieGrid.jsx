@@ -83,6 +83,8 @@ export default function MoviesGrid() {
 
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
   const searchInputRef = useRef(null);
+  const resultsRef = useRef(null);
+  const scrollToResultsRef = useRef(false);
 
   // Rotating taglines
   useEffect(() => {
@@ -140,6 +142,7 @@ export default function MoviesGrid() {
   const handleSearch = async (searchTerm) => {
     const term = (searchTerm ?? query).trim();
     if (!term) return;
+    scrollToResultsRef.current = true;
     setLoading(true);
     setError("");
     setHasSearched(true);
@@ -167,6 +170,19 @@ export default function MoviesGrid() {
     setQuery(term);
     handleSearch(term);
   };
+
+  // Bring the results into view once the section first renders, clearing the
+  // fixed nav so the heading is not hidden underneath it.
+  useEffect(() => {
+    if (!hasSearched || !scrollToResultsRef.current) return;
+    scrollToResultsRef.current = false;
+    const node = resultsRef.current;
+    if (!node) return;
+    const navHeight = document.querySelector(".nav")?.getBoundingClientRect().height ?? 0;
+    const top = node.getBoundingClientRect().top + window.scrollY - navHeight - 24;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? "auto" : "smooth" });
+  }, [hasSearched]);
 
   const isFavorite = (movie) => favorites.some((fav) => fav.imdbID === movie.imdbID);
 
@@ -283,7 +299,7 @@ export default function MoviesGrid() {
       {hasSearched ? (
         <>
           {/* SEARCH RESULTS */}
-          <section className="section" id="results">
+          <section className="section" id="results" ref={resultsRef}>
             <RevealOnScroll y={24}>
               <SectionHead
                 eyebrow={

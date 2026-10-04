@@ -3,40 +3,40 @@
 :root {
   color-scheme: dark;
 
-  /* ─── Surfaces ─── */
-  --ink: #12101c;        /* app background */
-  --ink-2: #1b1830;      /* secondary surface */
-  --ink-3: #221d38;      /* panel */
-  --ink-4: #2b2447;      /* raised / scrollbar */
+  /* ─── Surfaces (warm film-stock) ─── */
+  --ink: #16100d;        /* app background */
+  --ink-2: #1f1712;      /* secondary surface */
+  --ink-3: #2a1e17;      /* panel */
+  --ink-4: #3a2a1f;      /* raised / scrollbar */
 
   /* ─── Text ─── */
-  --cream: #f4ead8;      /* primary text */
-  --cream-2: #c9bfa8;    /* secondary text */
-  --cream-3: #8a7f6a;    /* muted text */
-  --ash: #8a7f6a;        /* placeholder */
-  --ash-2: #c9bfa8;
+  --cream: #fff1e8;      /* primary text */
+  --cream-2: #ffccaa;    /* secondary text */
+  --cream-3: #a88a6e;    /* muted text */
+  --ash: #a88a6e;        /* placeholder */
+  --ash-2: #ffccaa;
 
   /* ─── Accents ─── */
-  --accent: #e5344a;
-  --accent-2: #b02638;
-  --accent-soft: rgba(229, 52, 74, 0.15);
-  --accent-glow: rgba(229, 52, 74, 0.35);
-  --maroon: #7a1420;
-  --maroon-light: #a3222f;
-  --gold: #f2b632;
-  --gold-soft: rgba(242, 182, 50, 0.15);
-  --ok: #6ab04c;
-  --err: #e5344a;
-  --info: #4aa3e5;
+  --accent: #ffa300;
+  --accent-2: #cc8200;
+  --accent-soft: rgba(255, 163, 0, 0.16);
+  --accent-glow: rgba(255, 163, 0, 0.38);
+  --maroon: #742f29;
+  --maroon-light: #ab5236;
+  --gold: #ffec27;
+  --gold-soft: rgba(255, 236, 39, 0.14);
+  --ok: #4ed88a;
+  --err: #ff6b6b;
+  --info: #5ac8f5;
 
   /* ─── Surfaces / borders ─── */
-  --surface-1: rgba(244, 234, 216, 0.03);
-  --surface-2: rgba(244, 234, 216, 0.06);
-  --surface-3: rgba(244, 234, 216, 0.1);
-  --border: rgba(244, 234, 216, 0.14);
-  --border-2: rgba(244, 234, 216, 0.22);
-  --border-strong: rgba(244, 234, 216, 0.4);
-  --line: #000000;
+  --surface-1: rgba(255, 241, 232, 0.03);
+  --surface-2: rgba(255, 241, 232, 0.06);
+  --surface-3: rgba(255, 241, 232, 0.1);
+  --border: rgba(255, 241, 232, 0.14);
+  --border-2: rgba(255, 241, 232, 0.22);
+  --border-strong: rgba(255, 241, 232, 0.4);
+  --line: #0b0705;
 
   /* ─── Pixel shape & shadow ─── */
   --radius: 0;
@@ -53,13 +53,6 @@
   --panel-2: var(--ink-4);
   --text: var(--cream);
   --text-muted: var(--cream-3);
-
-  /* ─── Dither field (ordered-dither projector light) ─── */
-  --dither-1: #12101c;
-  --dither-2: #191531;
-  --dither-3: #211b45;
-  --dither-4: #2a2258;
-  --dither-5: #34296b;
 
   /* ─── z-index scale ─── */
   --z-menu: 95;
@@ -88,39 +81,36 @@
 html.light {
   color-scheme: light;
 
-  --ink: #f4ead8;        /* app background */
-  --ink-2: #ece0c8;
-  --ink-3: #fff8e7;
-  --ink-4: #f7efd8;
+  --ink: #fff1e8;        /* app background */
+  --ink-2: #f8e3d2;
+  --ink-3: #fff8f1;      /* panel */
+  --ink-4: #efd6be;
 
-  --cream: #201a2e;      /* primary text */
-  --cream-2: #4a4058;
-  --cream-3: #7a7088;
-  --ash: #7a7088;
-  --ash-2: #4a4058;
+  --cream: #241812;      /* primary text */
+  --cream-2: #63432f;
+  --cream-3: #77563f;
+  --ash: #77563f;
+  --ash-2: #63432f;
 
-  --accent: #d21f36;
-  --accent-2: #9c1b2c;
-  --accent-soft: rgba(210, 31, 54, 0.15);
-  --accent-glow: rgba(210, 31, 54, 0.35);
-  --maroon: #8a1622;
-  --maroon-light: #b02437;
-  --gold: #b07a00;
-  --gold-soft: rgba(176, 122, 0, 0.15);
+  --accent: #9c4a06;
+  --accent-2: #7a3a04;
+  --accent-soft: rgba(156, 74, 6, 0.12);
+  --accent-glow: rgba(156, 74, 6, 0.28);
+  --maroon: #742f29;
+  --maroon-light: #ab5236;
+  --gold: #8a6a00;
+  --gold-soft: rgba(138, 106, 0, 0.14);
+  --ok: #1f6b3a;
+  --err: #a8123c;
+  --info: #1f5c8a;
 
-  --surface-1: rgba(32, 26, 46, 0.04);
-  --surface-2: rgba(32, 26, 46, 0.07);
-  --surface-3: rgba(32, 26, 46, 0.1);
-  --border: rgba(32, 26, 46, 0.18);
-  --border-2: rgba(32, 26, 46, 0.28);
-  --border-strong: rgba(32, 26, 46, 0.45);
-  --line: #201a2e;
-
-  --dither-1: #f4ead8;
-  --dither-2: #ecdfc6;
-  --dither-3: #e3d4b4;
-  --dither-4: #dac8a2;
-  --dither-5: #cfba8f;
+  --surface-1: rgba(36, 24, 18, 0.04);
+  --surface-2: rgba(36, 24, 18, 0.07);
+  --surface-3: rgba(36, 24, 18, 0.1);
+  --border: rgba(36, 24, 18, 0.18);
+  --border-2: rgba(36, 24, 18, 0.28);
+  --border-strong: rgba(36, 24, 18, 0.45);
+  --line: #241812;
 }
 
 *,
@@ -185,17 +175,6 @@ canvas {
   );
 }
 html.light .fx-scanlines { opacity: 0.1; }
-
-/* ─── Dither field: ordered-dither projector light ─── */
-.dither-field {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  image-rendering: pixelated;
-}
 
 /* ─── Animations ─── */
 @keyframes fadeUp {
@@ -1861,6 +1840,9 @@ html.light .login-video-overlay {
    ══════════════════════════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

@@ -28,7 +28,7 @@ export function ThemeProvider({ children }) {
     }
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "light" ? "#f4ead8" : "#12101c");
+      meta.setAttribute("content", theme === "light" ? "#fff1e8" : "#16100d");
     }
     try {
       localStorage.setItem(STORAGE_KEY, theme);
